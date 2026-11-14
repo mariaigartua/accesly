@@ -9,7 +9,7 @@ const fail = (m) => {
   console.log(`✗ ${m}`);
 };
 
-const { MONGODB_URI, MONGODB_DB = "accessibility", GEMINI_API_KEY, GEMINI_MODEL = "gemini-3.8-flash" } = process.env;
+const { MONGODB_URI, MONGODB_DB = "accessibility", GEMINI_API_KEY, GEMINI_MODEL = "gemini-3.6-flash" } = process.env;
 
 // MongoDB
 if (!MONGODB_URI) fail("MONGODB_URI is not set");
@@ -30,17 +30,28 @@ else {
   }
 }
 
-// Gemini
+// Gemini (tries GEMINI_MODEL, then GEMINI_FALLBACK_MODEL if set — same as the app)
+const { GEMINI_FALLBACK_MODEL } = process.env;
 if (!GEMINI_API_KEY) fail("GEMINI_API_KEY is not set");
 else {
-  try {
-    const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-    const res = await ai.models.generateContent({ model: GEMINI_MODEL, contents: "Reply with exactly: pong" });
-    pass(`Gemini (${GEMINI_MODEL}) replied: ${(res.text ?? "").trim().slice(0, 40)}`);
-  } catch (e) {
-    fail(`Gemini: ${e.message}`);
-    if (/not found|404/i.test(e.message)) console.log("  → Try another model name in GEMINI_MODEL.");
+  const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY, httpOptions: { timeout: 20_000 } });
+  const models = [GEMINI_MODEL, GEMINI_FALLBACK_MODEL].filter(Boolean);
+  let ok = false;
+  for (const model of models) {
+    try {
+      const res = await ai.models.generateContent({ model, contents: "Reply with exactly: pong" });
+      pass(`Gemini (${model}) replied: ${(res.text ?? "").trim().slice(0, 40)}`);
+      ok = true;
+      break;
+    } catch (e) {
+      const msg = String(e?.message ?? e).slice(0, 200);
+      console.log(`  ${model}: ${msg}`);
+      if (/not found|404|no longer available/i.test(msg)) console.log("  → Model unavailable; set a different GEMINI_MODEL.");
+      else if (/timed? ?out|abort/i.test(msg)) console.log(`  → No answer in 20s.`);
+      else if (/503|high demand|UNAVAILABLE/i.test(msg)) console.log("  → Google says this model is overloaded right now.");
+    }
   }
+  if (!ok) fail(`Gemini: none of [${models.join(", ")}] answered`);
 }
 
 process.exit(failed ? 1 : 0);
