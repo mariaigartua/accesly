@@ -9,7 +9,7 @@ const fail = (m) => {
   console.log(`✗ ${m}`);
 };
 
-const { MONGODB_URI, MONGODB_DB = "accessibility", GEMINI_API_KEY, GEMINI_MODEL = "gemini-2.5-flash" } = process.env;
+const { MONGODB_URI, MONGODB_DB = "accessibility", GEMINI_API_KEY, GEMINI_MODEL = "gemini-3.8-flash" } = process.env;
 
 // MongoDB
 if (!MONGODB_URI) fail("MONGODB_URI is not set");
