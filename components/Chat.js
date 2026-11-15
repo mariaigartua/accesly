@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { CircleHelp, MessagesSquare, Send } from "lucide-react";
 import { REQUEST_TYPE_LABELS } from "@/lib/labels";
+import Button from "./ui/Button";
+import Card from "./ui/Card";
 
 const SUGGESTIONS = [
   "Is there a step-free entrance?",
@@ -52,16 +55,17 @@ export default function Chat({ eventId, eventName, onRequest }) {
   }
 
   return (
-    <section aria-labelledby="chat-heading" className="card">
-      <h2 id="chat-heading">Ask about this event</h2>
-      <p className="muted">
-        Answers come only from what the organizer shared. Nothing you type here is saved.
-      </p>
+    <Card as="section" aria-labelledby="chat-heading">
+      <h2 id="chat-heading" className="section-heading">
+        <MessagesSquare aria-hidden="true" focusable="false" />
+        Ask about this event
+      </h2>
+      <p className="muted">Answers come only from what the organizer shared. Nothing you type here is saved.</p>
 
       {messages.length === 0 && (
         <div className="suggestions" role="group" aria-label="Example questions">
           {SUGGESTIONS.map((s) => (
-            <button key={s} type="button" className="chip" onClick={() => ask(s)}>
+            <button key={s} type="button" className="chip-button" onClick={() => ask(s)}>
               {s}
             </button>
           ))}
@@ -75,12 +79,14 @@ export default function Chat({ eventId, eventName, onRequest }) {
             <span className="visually-hidden">{m.role === "user" ? "You asked:" : "Answer:"}</span>
             <p>{m.text}</p>
             {m.role === "assistant" && m.meta && m.meta.confirmed === false && (
-              <p className="tag">Not confirmed by the organizer</p>
+              <p className="tag">
+                <CircleHelp aria-hidden="true" focusable="false" />
+                Not confirmed by the organizer
+              </p>
             )}
             {m.role === "assistant" && m.meta?.suggestRequest && (
-              <button
-                type="button"
-                className="button-secondary"
+              <Button
+                variant="secondary"
                 onClick={() =>
                   onRequest({
                     type: REQUEST_TYPE_LABELS[m.meta.requestType] ? m.meta.requestType : "other",
@@ -89,7 +95,7 @@ export default function Chat({ eventId, eventName, onRequest }) {
                 }
               >
                 Send an anonymous request about this
-              </button>
+              </Button>
             )}
           </li>
         ))}
@@ -101,14 +107,13 @@ export default function Chat({ eventId, eventName, onRequest }) {
       </ol>
 
       <form
-        className="chat-form"
         onSubmit={(e) => {
           e.preventDefault();
           ask(input);
         }}
       >
         <label htmlFor="chat-input">Your question about {eventName}</label>
-        <div className="row">
+        <div className="input-row">
           <input
             id="chat-input"
             type="text"
@@ -117,11 +122,11 @@ export default function Chat({ eventId, eventName, onRequest }) {
             placeholder="e.g. Is there seating near the exit?"
             autoComplete="off"
           />
-          <button type="submit" disabled={loading || !input.trim()}>
+          <Button type="submit" icon={Send} disabled={loading || !input.trim()}>
             Ask
-          </button>
+          </Button>
         </div>
       </form>
-    </section>
+    </Card>
   );
 }

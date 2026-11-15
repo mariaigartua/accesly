@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
+import { CalendarDays } from "lucide-react";
 import { collections, toObjectId } from "@/lib/mongodb";
 import { formatDate } from "@/lib/labels";
 import RequestQueue from "@/components/RequestQueue";
+import BackLink from "@/components/ui/BackLink";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Organizer dashboard · Accesly", robots: { index: false } };
+export const metadata = { title: "Organizer dashboard", robots: { index: false } };
 
 export default async function OrganizerPage({ params }) {
   const { id } = await params;
@@ -17,12 +19,19 @@ export default async function OrganizerPage({ params }) {
 
   return (
     <>
-      <p><a href={`/events/${id}`}>← Attendee view</a></p>
-      <h1>Requests for {event.name}</h1>
-      <p className="muted">
-        <time dateTime={new Date(event.startsAt).toISOString()}>{formatDate(event.startsAt)}</time>
-      </p>
-      <RequestQueue eventId={id} />
+      <BackLink href={`/events/${id}`}>Attendee view</BackLink>
+      <header className="page-header">
+        <h1>Requests for {event.name}</h1>
+        <ul className="meta">
+          <li>
+            <CalendarDays aria-hidden="true" focusable="false" />
+            <time dateTime={new Date(event.startsAt).toISOString()}>{formatDate(event.startsAt)}</time>
+          </li>
+        </ul>
+      </header>
+      <div className="narrow">
+        <RequestQueue eventId={id} />
+      </div>
     </>
   );
 }

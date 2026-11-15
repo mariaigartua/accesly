@@ -32,6 +32,8 @@ Friendly, calm, rounded, lots of white space. Mobile-first, fully responsive.
 - `accessly-icon.svg` — white figure (arms up) on a cyan→deep-blue gradient square. Use for the app icon/favicon, the Home logo, and the Ally avatar.
 - `accessly-wordmark.svg` — "Accessly" in brand teal with the figure as the "y". Use in the header.
 - Both need `alt` text: icon `alt=""` when next to the wordmark (decorative), wordmark `alt="Accessly"`.
+- **In the app use the web variants** (the originals are 768×768 with a white background and a 374 KB embedded PNG): `accessly-icon-web.svg` (pure vector, rounded, also `app/icon.svg` favicon), `accessly-wordmark-web.svg` (cropped, transparent) and `accessly-wordmark-web-dark.svg` (`#5ce1e6`, swapped in via `<picture>` for dark mode).
+- Shared UI lives in `components/ui/` (Button, Card, StatusBadge, NeedChips/TopicChips/NeedIcon, Notice, Stepper, BackLink, EventCard); header/tabs in `components/SiteHeader.js` + `components/TabBar.js`.
 
 **Color tokens** (contrast checked — don't swap without re-checking):
 | Token | Light | Dark | Use |

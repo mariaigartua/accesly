@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CircleAlert, Copy, HandHeart, Lock } from "lucide-react";
 import { REQUEST_TYPE_LABELS } from "@/lib/labels";
+import Button from "./ui/Button";
+import Card from "./ui/Card";
+import Notice from "./ui/Notice";
 
 // React 19: `ref` is a normal prop for function components.
 export default function RequestForm({ eventId, prefillType, prefillNote, ref }) {
@@ -56,25 +60,26 @@ export default function RequestForm({ eventId, prefillType, prefillNote, ref }) 
   }
 
   return (
-    <section aria-labelledby="request-heading" className="card" ref={ref} tabIndex={-1}>
-      <h2 id="request-heading">Request an accommodation</h2>
-      <p className="muted">
-        Tell the organizer what you need, not why. Your name is only shared if you choose to.
-      </p>
+    <Card as="section" aria-labelledby="request-heading" ref={ref} tabIndex={-1}>
+      <h2 id="request-heading" className="section-heading">
+        <HandHeart aria-hidden="true" focusable="false" />
+        Request an accommodation
+      </h2>
+      <p className="muted">Tell the organizer what you need, not why. Your name is only shared if you choose to.</p>
 
       {token ? (
-        <div role="status" className="success">
+        <Notice tone="success" title="Request sent" role="status">
           <p>
-            <strong>Request sent.</strong> Save this private link to check its status. It&apos;s the only way
-            to find your request, because we don&apos;t store who sent it.
+            Save this private link to check its status. It&apos;s the only way to find your request, because we
+            don&apos;t store who sent it.
           </p>
-          <p>
-            <a href={statusPath}>View my request status</a>
-          </p>
-          <button type="button" className="button-secondary" onClick={copyLink}>
-            {copied ? "Link copied" : "Copy link"}
-          </button>
-        </div>
+          <div className="button-row">
+            <Button href={statusPath}>View my request status</Button>
+            <Button variant="secondary" icon={Copy} onClick={copyLink}>
+              {copied ? "Link copied" : "Copy link"}
+            </Button>
+          </div>
+        </Notice>
       ) : (
         <form onSubmit={submit} noValidate>
           <div className="field">
@@ -97,16 +102,18 @@ export default function RequestForm({ eventId, prefillType, prefillNote, ref }) 
 
           <div className="field">
             <label htmlFor="req-note">Details (optional)</label>
+            <p id="req-note-hint" className="hint">For example, where you&apos;d like to sit. No need to say why.</p>
             <textarea
               id="req-note"
               rows={3}
               maxLength={1000}
               value={note}
+              aria-describedby="req-note-hint"
               onChange={(e) => setNote(e.target.value)}
             />
           </div>
 
-          <div className="field checkbox">
+          <div className="field field-check">
             <input
               id="req-share"
               type="checkbox"
@@ -130,16 +137,17 @@ export default function RequestForm({ eventId, prefillType, prefillNote, ref }) 
           )}
 
           {error && (
-            <p id="req-error" role="alert" className="error">
+            <p id="req-error" role="alert" className="error-text">
+              <CircleAlert aria-hidden="true" focusable="false" />
               {error}
             </p>
           )}
 
-          <button type="submit" disabled={submitting}>
+          <Button type="submit" icon={shareContact ? undefined : Lock} disabled={submitting}>
             {submitting ? "Sending…" : shareContact ? "Send request" : "Send anonymous request"}
-          </button>
+          </Button>
         </form>
       )}
-    </section>
+    </Card>
   );
 }

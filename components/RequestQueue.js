@@ -1,7 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { CircleAlert, CircleCheck, CircleX, KeyRound, RefreshCw, UserRound, EyeOff } from "lucide-react";
 import { REQUEST_TYPE_LABELS, STATUS_LABELS, formatDate } from "@/lib/labels";
+import Button from "./ui/Button";
+import Card from "./ui/Card";
+import { NeedIcon } from "./ui/NeedChips";
+import StatusBadge from "./ui/StatusBadge";
+
+function ErrorText({ children }) {
+  return (
+    <p role="alert" className="error-text">
+      <CircleAlert aria-hidden="true" focusable="false" />
+      {children}
+    </p>
+  );
+}
 
 export default function RequestQueue({ eventId }) {
   const [key, setKey] = useState("");
@@ -46,15 +60,21 @@ export default function RequestQueue({ eventId }) {
 
   if (!unlocked) {
     return (
-      <form
-        className="card"
+      <Card
+        as="form"
+        aria-labelledby="unlock-heading"
         onSubmit={(e) => {
           e.preventDefault();
           load();
         }}
       >
+        <h2 id="unlock-heading" className="section-heading">
+          <KeyRound aria-hidden="true" focusable="false" />
+          Open your request queue
+        </h2>
         <div className="field">
           <label htmlFor="org-key">Organizer key</label>
+          <p id="org-key-help" className="hint">You got this key when you created the event.</p>
           <input
             id="org-key"
             type="password"
@@ -62,22 +82,29 @@ export default function RequestQueue({ eventId }) {
             onChange={(e) => setKey(e.target.value)}
             autoComplete="off"
             aria-describedby="org-key-help"
+            aria-invalid={!!error}
           />
-          <p id="org-key-help" className="muted">You got this key when you created the event.</p>
         </div>
-        {error && <p role="alert" className="error">{error}</p>}
-        <button type="submit" disabled={!key || loading}>{loading ? "Checking…" : "Open requests"}</button>
-      </form>
+        {error && <ErrorText>{error}</ErrorText>}
+        <Button type="submit" disabled={!key || loading}>
+          {loading ? "Checking…" : "Open requests"}
+        </Button>
+      </Card>
     );
   }
 
   return (
     <>
-      <p role="status" className="muted">
-        {message || `${requests.length} request${requests.length === 1 ? "" : "s"}. Requests show needs only, never a diagnosis.`}
-      </p>
-      {error && <p role="alert" className="error">{error}</p>}
-      <button type="button" className="button-secondary" onClick={() => load()}>Refresh</button>
+      <div className="toolbar">
+        <p role="status" className="muted">
+          {message ||
+            `${requests.length} request${requests.length === 1 ? "" : "s"}. Requests show needs only, never a diagnosis.`}
+        </p>
+        <Button variant="secondary" icon={RefreshCw} onClick={() => load()}>
+          Refresh
+        </Button>
+      </div>
+      {error && <ErrorText>{error}</ErrorText>}
 
       {requests.length === 0 && <p>No requests yet.</p>}
 
@@ -85,14 +112,27 @@ export default function RequestQueue({ eventId }) {
         {requests.map((r) => {
           const id = String(r._id);
           return (
-            <li key={id} className="card">
-              <h2 className="h3">{REQUEST_TYPE_LABELS[r.type] ?? r.type}</h2>
-              <p className={`badge badge-${r.status}`}>{STATUS_LABELS[r.status] ?? r.status}</p>
+            <Card as="li" key={id}>
+              <div className="queue-head">
+                <h2 className="h3 section-heading">
+                  <NeedIcon need={(r.needs ?? [r.type])[0]} />
+                  {(r.needs ?? [r.type]).map((n) => REQUEST_TYPE_LABELS[n] ?? n).join(", ")}
+                </h2>
+                <StatusBadge status={r.status} />
+              </div>
               {r.note && <p>{r.note}</p>}
-              <p className="muted">
-                {r.contact ? <>Contact shared: {r.contact}</> : "Anonymous"} · sent {formatDate(r.createdAt)}
-              </p>
-              <div className="field">
+              <ul className="meta">
+                <li>
+                  {r.contact ? (
+                    <UserRound aria-hidden="true" focusable="false" />
+                  ) : (
+                    <EyeOff aria-hidden="true" focusable="false" />
+                  )}
+                  {r.contact ? <>Contact shared: {r.contact}</> : "Anonymous"}
+                </li>
+                <li>Sent {formatDate(r.createdAt)}</li>
+              </ul>
+              <div className="field reply-field">
                 <label htmlFor={`reply-${id}`}>Reply to attendee (optional)</label>
                 <textarea
                   id={`reply-${id}`}
@@ -101,13 +141,15 @@ export default function RequestQueue({ eventId }) {
                   onChange={(e) => setReplies((s) => ({ ...s, [id]: e.target.value }))}
                 />
               </div>
-              <div className="row">
-                <button type="button" onClick={() => update(id, "confirmed")}>Confirm</button>
-                <button type="button" className="button-secondary" onClick={() => update(id, "cannot-accommodate")}>
+              <div className="button-row">
+                <Button icon={CircleCheck} onClick={() => update(id, "confirmed")}>
+                  Confirm
+                </Button>
+                <Button variant="danger" icon={CircleX} onClick={() => update(id, "cannot-accommodate")}>
                   Can&apos;t accommodate
-                </button>
+                </Button>
               </div>
-            </li>
+            </Card>
           );
         })}
       </ul>
