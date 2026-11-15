@@ -519,10 +519,11 @@ body:has(.splash) main { max-width: none; padding: 0; }
   cursor: pointer;
 }
 @media (prefers-reduced-motion: reduce) { .splash-pause { display: none; } }
-.splash-circle.c1 { width: 260px; height: 260px; top: -110px; right: -90px; background: var(--cyan); }
-.splash-circle.c2 { width: 220px; height: 220px; bottom: -90px; left: -80px; background: var(--primary-hover); }
-.splash-circle.c3 { width: 180px; height: 180px; bottom: -70px; right: -40px; background: var(--teal-fill); }
-.splash-circle.c4 { width: 28px; height: 28px; top: 10%; left: 58%; background: var(--sky); }
+/* Sizes scale with the screen: phone sizes are the minimum, desktop gets much larger circles. */
+.splash-circle.c1 { --d: clamp(260px, 38vw, 640px); width: var(--d); height: var(--d); top: calc(var(--d) * -0.42); right: calc(var(--d) * -0.34); background: var(--cyan); }
+.splash-circle.c2 { --d: clamp(220px, 32vw, 540px); width: var(--d); height: var(--d); bottom: calc(var(--d) * -0.4); left: calc(var(--d) * -0.36); background: var(--primary-hover); }
+.splash-circle.c3 { --d: clamp(180px, 26vw, 440px); width: var(--d); height: var(--d); bottom: calc(var(--d) * -0.38); right: calc(var(--d) * -0.22); background: var(--teal-fill); }
+.splash-circle.c4 { --d: clamp(28px, 3.2vw, 56px); width: var(--d); height: var(--d); top: 10%; left: 58%; background: var(--sky); }
 @media (prefers-color-scheme: dark) { .splash-circle.c2 { background: #1b4a85; } }
 .splash-content { position: relative; width: 100%; max-width: 46rem; margin: 0 auto; text-align: center; }
 .splash .menu-card { text-align: left; }
@@ -1165,6 +1166,7 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .ally-badges:empty { display: none; }
 .ally-text { white-space: pre-line; }
 .ally-offline { display: flex; margin-bottom: 0.75rem; border-radius: var(--radius-field); }
+.ally-method { font-size: 1rem; margin-bottom: 0.5rem; }
 .ally-sources-heading { font-size: 1.125rem; margin-bottom: 0.5rem; }
 .ally-sources { margin: 0; padding-left: 1.25rem; }
 .ally-sources li { margin-bottom: 0.35rem; }

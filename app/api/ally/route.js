@@ -1,6 +1,7 @@
 import { collections } from "@/lib/mongodb";
-import { generateGrounded, generateText } from "@/lib/gemini";
-import { ALLY_SYSTEM, ALLY_HELP_SYSTEM, ALLY_NO_SEARCH_SYSTEM } from "@/lib/prompts";
+import { generateGrounded, generateText, generateWithUrls, markSearchUnavailable, searchAvailable } from "@/lib/gemini";
+import { ALLY_SYSTEM, ALLY_HELP_SYSTEM, ALLY_NO_SEARCH_SYSTEM, ALLY_OFFICIAL_SOURCES_SYSTEM } from "@/lib/prompts";
+import { pickSources } from "@/lib/allySources";
 import { PROFILE_NEEDS, needLabel } from "@/lib/labels";
 import { ok, bad, readJson } from "@/lib/http";
 
@@ -40,8 +41,9 @@ async function spacesContext() {
 }
 
 // POST /api/ally  { question, needs?: [type], mode?: "help", history?: [{ role, text }] }
-// → { answer, sources: [{ title, url }], usedSpaces, caution, sure, searchSuggestionsHtml, searchUnavailable? }
-// If Google Search grounding fails (quota/outage), answers strictly from Accessly data instead.
+// → { answer, sources: [{ title, url }], usedSpaces, caution, sure, searchSuggestionsHtml, method }
+// method: "search" (Google Search grounding) → "official-pages" (reads hand-picked official pages
+// from lib/allySources.js) → "accessly-only" (strictly Accessly data). Never answers from model memory.
 // Privacy: questions are never stored or logged. Only the needs the person chose to share are sent.
 export async function POST(req) {
   const body = await readJson(req);
@@ -71,21 +73,47 @@ export async function POST(req) {
       .filter(Boolean)
       .join("\n\n");
 
-    let grounded;
-    try {
-      grounded = await generateGrounded({ system: ALLY_SYSTEM, prompt });
-    } catch {
-      // No web search: answer only from Accessly data, never from the model's memory.
-      const text = await generateText({ system: ALLY_NO_SEARCH_SYSTEM, prompt });
-      const parsed = parseReply(text);
-      if (!parsed.usedSpaces) parsed.sure = false;
-      return ok({ ...parsed, sources: [], searchSuggestionsHtml: "", searchUnavailable: true });
+    // 1) Google Search grounding (skipped for an hour after a quota error).
+    if (searchAvailable()) {
+      try {
+        const { text, sources, searchSuggestionsHtml } = await generateGrounded({ system: ALLY_SYSTEM, prompt });
+        const parsed = parseReply(text);
+        if (!sources.length && !parsed.usedSpaces) parsed.sure = false; // nothing verified
+        return ok({ ...parsed, sources: sources.slice(0, 8), searchSuggestionsHtml, method: "search" });
+      } catch (e) {
+        markSearchUnavailable(e);
+      }
     }
-    const { text, sources, searchSuggestionsHtml } = grounded;
+
+    // 2) Read hand-picked official pages (PVTA, UMass) with the URL context tool.
+    const official = pickSources(question);
+    if (official.length) {
+      try {
+        const pages = official.map((s) => `- ${s.title}: ${s.url}`).join("\n");
+        // URLs first: the URL context tool only reliably reads pages the prompt leads with.
+        const { text, readUrls } = await generateWithUrls({
+          system: ALLY_OFFICIAL_SOURCES_SYSTEM,
+          prompt: `Read each of these official pages before answering:\n${pages}\n\nQUESTION: ${question}\n\n${prompt}`,
+        });
+        // Only cite pages that were actually retrieved.
+        const norm = (u) => String(u).replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+        const sources = official.filter((s) => readUrls.some((u) => norm(u) === norm(s.url))).map(({ title, url }) => ({ title, url }));
+        if (sources.length) {
+          const parsed = parseReply(text);
+          return ok({ ...parsed, sources, searchSuggestionsHtml: "", method: "official-pages" });
+        }
+        console.error("Ally official pages: none retrieved", JSON.stringify(readUrls));
+      } catch (e) {
+        // Logs the error only, never the question.
+        console.error("Ally official pages failed:", String(e?.message ?? e).slice(0, 300));
+      }
+    }
+
+    // 3) Strictly Accessly data; for anything else Ally says it can't check and who to ask.
+    const text = await generateText({ system: ALLY_NO_SEARCH_SYSTEM, prompt });
     const parsed = parseReply(text);
-    // No sources and no Accessly data means nothing was verified.
-    if (!sources.length && !parsed.usedSpaces) parsed.sure = false;
-    return ok({ ...parsed, sources: sources.slice(0, 8), searchSuggestionsHtml });
+    if (!parsed.usedSpaces) parsed.sure = false;
+    return ok({ ...parsed, sources: [], searchSuggestionsHtml: "", method: "accessly-only" });
   } catch {
     return bad("Ally is busy right now. Please try again in a moment.", 503);
   }

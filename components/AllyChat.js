@@ -47,11 +47,14 @@ function AnswerCard({ item, onRetry }) {
           </span>
         )}
       </div>
-      {r.searchUnavailable && (
+      {r.method === "accessly-only" && (
         <p className="tag ally-offline">
           <CircleHelp aria-hidden="true" focusable="false" />
-          Web search is unavailable right now, so I only used Accessly&apos;s campus data.
+          I couldn&apos;t check the web for this, so I only used Accessly&apos;s campus data.
         </p>
+      )}
+      {r.method === "official-pages" && (
+        <p className="ally-method muted">Answered from official PVTA and UMass pages{r.usedSpaces ? " and Accessly data" : ""}.</p>
       )}
       {r.answer.split(/\n{2,}/).map((para, i) => (
         <p key={i} className="ally-text">
@@ -68,8 +71,9 @@ function AnswerCard({ item, onRetry }) {
         </div>
       )}
       {r.sources?.length > 0 && (
-        <section aria-label="Sources" className="mt-md">
-          <h2 className="h3 ally-sources-heading">Sources</h2>
+        <section aria-label={r.sure ? "Sources" : "Pages checked"} className="mt-md">
+          {/* If the answer isn't verified, these are pages Ally checked, not proof of the answer. */}
+          <h2 className="h3 ally-sources-heading">{r.sure ? "Sources" : "Pages checked"}</h2>
           <ul className="ally-sources">
             {r.sources.map((s) => (
               <li key={s.url}>
