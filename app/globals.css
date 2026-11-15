@@ -168,6 +168,43 @@ main:focus { outline: none; }
   .split { grid-template-columns: 3fr 2fr; gap: 2rem; align-items: start; }
 }
 
+/* Two equal columns on desktop (Explore: locations | events). */
+.split-even { display: grid; gap: 2.5rem; }
+.split-even > * { min-width: 0; }
+@media (min-width: 1024px) {
+  .split-even { grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
+}
+
+.card-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem; }
+.toolbar h2 { margin: 0; }
+
+.report-list { list-style: none; padding: 0; margin: 0; }
+.report-list li { padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+.report-list li:first-child { padding-top: 0; }
+.report-list li:last-child { border-bottom: none; padding-bottom: 0; }
+.report-list p { margin: 0; }
+
+/* Home main menu: full-width buttons on mobile, a row of three cards on desktop. */
+.menu-grid { list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem; }
+@media (min-width: 1024px) { .menu-grid { grid-template-columns: repeat(3, 1fr); } }
+.menu-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  height: 100%;
+  min-height: 44px;
+  padding: 1.25rem 1.5rem;
+  border: 2px solid var(--primary);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+}
+.menu-card:hover { background: var(--primary-tint); }
+.menu-card svg { width: 2rem; height: 2rem; color: var(--primary); }
+.menu-title { font-family: var(--font-heading); font-size: 1.375rem; font-weight: 700; color: var(--primary); }
+.menu-text { color: var(--muted); }
+
 .card-grid {
   list-style: none;
   padding: 0;

@@ -1,17 +1,18 @@
 import crypto from "node:crypto";
 import { collections, toObjectId } from "@/lib/mongodb";
 import { ok, bad, readJson } from "@/lib/http";
+import { searchEvents } from "@/lib/search";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/events — public list (no organizer keys).
-export async function GET() {
-  const { events } = await collections();
-  const list = await events
-    .find({}, { projection: { organizerKey: 0 } })
-    .sort({ startsAt: 1 })
-    .toArray();
-  return ok(list);
+// GET /api/events?q=&spaceId= — public list of upcoming events (no organizer keys).
+export async function GET(req) {
+  const params = new URL(req.url).searchParams;
+  const q = (params.get("q") ?? "").slice(0, 200);
+  const rawSpaceId = params.get("spaceId");
+  const spaceId = rawSpaceId ? toObjectId(rawSpaceId) : null;
+  if (rawSpaceId && !spaceId) return bad("invalid spaceId");
+  return ok(await searchEvents({ q, spaceId }));
 }
 
 // POST /api/events — organizer creates an event in a saved space.

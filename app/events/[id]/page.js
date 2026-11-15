@@ -62,7 +62,7 @@ export default async function EventPage({ params }) {
 
   return (
     <>
-      <BackLink href="/">All events</BackLink>
+      <BackLink href="/explore#events">All events</BackLink>
 
       <header className="page-header">
         <h1>{event.name}</h1>
@@ -80,7 +80,7 @@ export default async function EventPage({ params }) {
           {where && (
             <li>
               <MapPin aria-hidden="true" focusable="false" />
-              {where}
+              <a href={`/spaces/${space._id}`}>{where}</a>
             </li>
           )}
         </ul>
