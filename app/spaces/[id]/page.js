@@ -4,6 +4,7 @@ import { collections, toObjectId } from "@/lib/mongodb";
 import { humanize } from "@/lib/labels";
 import { searchEvents, spaceName, lastChecked, toEventCard } from "@/lib/search";
 import ReportIssueForm from "@/components/ReportIssueForm";
+import PersonalHighlights from "@/components/PersonalHighlights";
 import BackLink from "@/components/ui/BackLink";
 import Card from "@/components/ui/Card";
 import EventCard from "@/components/ui/EventCard";
@@ -36,6 +37,7 @@ export default async function SpacePage({ params }) {
   const reports = [...(space.reports ?? [])].reverse().slice(0, 5); // newest first
   const events = await searchEvents({ spaceId: space._id });
   const checked = lastChecked(space);
+  const highlightEntries = features.map(([key, v]) => ({ key, value: String(v?.value ?? v), source: "On file" }));
 
   return (
     <>
@@ -57,6 +59,8 @@ export default async function SpacePage({ params }) {
 
       <div className="split">
         <div className="stack">
+          <PersonalHighlights entries={highlightEntries} />
+
           <Card as="section" aria-labelledby="features-heading">
             <h2 id="features-heading">Accessibility features</h2>
             {features.length === 0 ? (

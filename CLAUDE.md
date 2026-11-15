@@ -194,13 +194,13 @@ Env (`.env.local`, never commit): `MONGODB_URI`, `MONGODB_DB` (default `accessib
 - Run `npm run build` before every push. Clear commit messages.
 
 ## Status
-**Done:** scaffold, Atlas + Gemini setup and health check, API routes (spaces, events, chat, followups, requests), attendee event page (summary, grounded chat, anonymous request), request status page, per-event organizer queue, seed script.
+**Done:** scaffold, Atlas + Gemini setup and health check, API routes (spaces, events, chat, followups, requests), attendee event page (summary, grounded chat, anonymous request), request status page, per-event organizer queue, seed script. Items 1–3 below (design system; Home/Explore/Building page with search + anonymous reports; device-only Profile, My requests, Privacy & FAQ, profile-prefilled request form, client-side highlights in `lib/highlights.js`). From item 4, already done: need types synced (`lib/prompts.js` ↔ `lib/labels.js`, legacy `quiet-space` still displays) and `POST /api/requests` takes `needs[]` (legacy `type` still accepted). Design is still being finalised — new pages are functional first.
 
 **Build next (priority order):**
 1. Design system: tokens, fonts (Bricolage Grotesque + Atkinson Hyperlegible), logos in `public/brand/`, responsive layout + TabBar, shared components. Restyle existing pages.
 2. Home main menu + Explore (locations + events with search) + Building page.
 3. Profile (device-only) + My requests + Privacy & FAQ; prefill request form from profile needs; personalized highlights.
-4. Data model updates: `needs[]`, statuses (`awaiting`/`in-progress`); new `chats` collection + endpoints (separate from requests); Organizer tab (multi-event requests, Your events, Chats inbox).
+4. Data model updates: statuses (`awaiting`/`in-progress`) (`needs[]` done); new `chats` collection + endpoints (separate from requests); Organizer tab (multi-event requests, Your events, Chats inbox).
 5. Create event 3-step flow with AI questionnaire + organizer key confirmation.
 6. Ally (`/ally` + `/api/ally` with search grounding and sources).
 7. Quick start (describe what you want → AI picks the destination → confirm → go).

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CalendarDays, Compass, UserRound } from "lucide-react";
+import { getProfile, useLocal, DEFAULT_PROFILE } from "@/lib/local";
+import Avatar from "./ui/Avatar";
 
 // `sections` = other paths that belong to this tab (e.g. an event page lives under Explore).
 const TABS = [
@@ -15,6 +17,7 @@ const within = (path, base) => path === base || path.startsWith(`${base}/`);
 
 export default function TabBar() {
   const pathname = usePathname() ?? "/";
+  const [profile] = useLocal(getProfile, DEFAULT_PROFILE);
   return (
     <nav className="tabbar" aria-label="Main">
       <ul>
@@ -25,7 +28,11 @@ export default function TabBar() {
           return (
             <li key={href}>
               <Link href={href} className="tab" aria-current={current}>
-                <Icon aria-hidden="true" focusable="false" />
+                {href === "/profile" && profile.avatar ? (
+                  <Avatar id={profile.avatar} size={22} />
+                ) : (
+                  <Icon aria-hidden="true" focusable="false" />
+                )}
                 <span>{label}</span>
               </Link>
             </li>

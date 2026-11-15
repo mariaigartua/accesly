@@ -3,6 +3,7 @@ import { CalendarDays, MapPin, Users, Building2, Sparkles } from "lucide-react";
 import { collections, toObjectId } from "@/lib/mongodb";
 import { humanize, formatDate } from "@/lib/labels";
 import EventAssistant from "@/components/EventAssistant";
+import PersonalHighlights from "@/components/PersonalHighlights";
 import BackLink from "@/components/ui/BackLink";
 import Card from "@/components/ui/Card";
 import Notice from "@/components/ui/Notice";
@@ -58,6 +59,11 @@ export default async function EventPage({ params }) {
     .filter(([, v]) => v?.value ?? v)
     .map(([key, v]) => ({ key, value: v?.value ?? String(v), checked: v?.lastVerified }));
   const reports = space?.reports ?? [];
+  // Plain data for the in-browser "For your needs" matching.
+  const highlightEntries = [
+    ...eventInfo.map(({ key, value }) => ({ key, value, source: "Organizer" })),
+    ...spaceInfo.map(({ key, value }) => ({ key, value: String(value), source: "Space" })),
+  ];
   const where = space ? [space.building, space.room].filter(Boolean).join(", ") : "";
 
   return (
@@ -88,6 +94,8 @@ export default async function EventPage({ params }) {
 
       <div className="split">
         <div className="stack">
+          <PersonalHighlights entries={highlightEntries} requestHref="#request-form" />
+
           {event.description && (
             <Card as="section" aria-labelledby="about-heading">
               <h2 id="about-heading">About this event</h2>

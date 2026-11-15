@@ -13,7 +13,7 @@ import {
   Footprints,
   Info,
 } from "lucide-react";
-import { REQUEST_TYPE_LABELS, humanize } from "@/lib/labels";
+import { needLabel, humanize } from "@/lib/labels";
 
 // Icons for request/need types (lib/labels.js keys, plus the planned ones from CLAUDE.md).
 const NEED_ICONS = {
@@ -73,7 +73,7 @@ function ChipList({ items, label }) {
 export default function NeedChips({ needs = [], label }) {
   const items = needs.filter(Boolean).map((n) => ({
     key: n,
-    text: REQUEST_TYPE_LABELS[n] ?? humanize(n),
+    text: needLabel(n) === n ? humanize(n) : needLabel(n),
     Icon: NEED_ICONS[n] ?? Info,
   }));
   return <ChipList items={items} label={label} />;

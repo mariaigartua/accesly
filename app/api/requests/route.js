@@ -7,14 +7,19 @@ export const dynamic = "force-dynamic";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// POST /api/requests  { eventId, type, note?, contact? }
+// POST /api/requests  { eventId, needs: [type, ...], note?, contact? }   (legacy: { type })
 // Anonymous by default: stores the NEED, not who asked. `contact` is optional and opt-in.
 // Returns a private accessToken the attendee uses to check status.
 export async function POST(req) {
   const body = await readJson(req);
   const eventId = toObjectId(body?.eventId);
   if (!eventId) return bad("valid eventId is required");
-  if (!REQUEST_TYPES.includes(body?.type)) return bad(`type must be one of: ${REQUEST_TYPES.join(", ")}`);
+  const raw = Array.isArray(body?.needs) ? body.needs : body?.type ? [body.type] : [];
+  const needs = [...new Set(raw)];
+  if (!needs.length) return bad("Choose at least one need.");
+  if (needs.length > REQUEST_TYPES.length || !needs.every((n) => REQUEST_TYPES.includes(n))) {
+    return bad(`needs must be from: ${REQUEST_TYPES.join(", ")}`);
+  }
 
   const { events, requests } = await collections();
   const event = await events.findOne({ _id: eventId }, { projection: { startsAt: 1, endsAt: 1 } });
@@ -23,7 +28,7 @@ export async function POST(req) {
   const eventEnd = event.endsAt ?? event.startsAt;
   const doc = {
     eventId,
-    type: body.type,
+    needs,
     note: (body.note ?? "").slice(0, 1000),
     contact: body.contact?.trim() || null, // only if the attendee chooses to share it
     status: "pending", // pending | confirmed | cannot-accommodate

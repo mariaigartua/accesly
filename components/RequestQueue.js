@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CircleAlert, CircleCheck, CircleX, KeyRound, RefreshCw, UserRound, EyeOff } from "lucide-react";
-import { REQUEST_TYPE_LABELS, STATUS_LABELS, formatDate } from "@/lib/labels";
+import { needLabel, STATUS_LABELS, formatDate } from "@/lib/labels";
 import Button from "./ui/Button";
 import Card from "./ui/Card";
 import { NeedIcon } from "./ui/NeedChips";
@@ -116,7 +116,7 @@ export default function RequestQueue({ eventId }) {
               <div className="queue-head">
                 <h2 className="h3 section-heading">
                   <NeedIcon need={(r.needs ?? [r.type])[0]} />
-                  {(r.needs ?? [r.type]).map((n) => REQUEST_TYPE_LABELS[n] ?? n).join(", ")}
+                  {(r.needs ?? [r.type]).map(needLabel).join(", ")}
                 </h2>
                 <StatusBadge status={r.status} />
               </div>
