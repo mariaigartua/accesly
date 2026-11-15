@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CircleAlert, Save, Trash } from "lucide-react";
+import { Check, CircleAlert, Trash } from "lucide-react";
 import { clearAll, getProfile, saveProfile, storageAvailable, useLocal, DEFAULT_PROFILE } from "@/lib/local";
 import { PROFILE_NEEDS, REQUEST_TYPE_LABELS } from "@/lib/labels";
 import Avatar, { AVATARS } from "./ui/Avatar";
 import Button from "./ui/Button";
 import Card from "./ui/Card";
 import Notice from "./ui/Notice";
+import { ChipPicker, Switch } from "./ui/Pickers";
 
 /** Device-only profile form. Saving writes to localStorage; nothing is sent to the server. */
 export default function ProfileForm() {
@@ -34,7 +35,6 @@ export default function ProfileForm() {
     setP((cur) => ({ ...cur, [field]: value }));
     setStatus("");
   };
-  const toggleNeed = (n, on) => set("needs", on ? [...p.needs, n] : p.needs.filter((x) => x !== n));
 
   function save(e) {
     e.preventDefault();
@@ -76,12 +76,14 @@ export default function ProfileForm() {
                     checked={p.avatar === id}
                     onChange={() => set("avatar", id)}
                   />
+                  <Check className="pick-check" aria-hidden="true" focusable="false" />
                   <Avatar id={id} size={40} />
                   <span>{a.label}</span>
                 </label>
               ))}
               <label className="avatar-choice">
                 <input type="radio" name="avatar" value="" checked={!p.avatar} onChange={() => set("avatar", "")} />
+                <Check className="pick-check" aria-hidden="true" focusable="false" />
                 <Avatar id="" size={40} />
                 <span>None</span>
               </label>
@@ -99,39 +101,22 @@ export default function ProfileForm() {
 
         <Card as="fieldset" className="fieldset-card">
           <legend className="h3">Privacy</legend>
-          <div className="field field-check">
-            <input
-              id="pf-anon"
-              type="checkbox"
-              checked={p.anonymousByDefault}
-              onChange={(e) => set("anonymousByDefault", e.target.checked)}
-              aria-describedby="pf-anon-hint"
-            />
-            <div>
-              <label htmlFor="pf-anon">Anonymous by default</label>
-              <p id="pf-anon-hint" className="hint">
-                Requests start without your contact info. You can still choose to share it on any request.
-              </p>
-            </div>
-          </div>
-          <div className="field field-check">
-            <input
-              id="pf-contact-on"
-              type="checkbox"
-              checked={p.canContact}
-              onChange={(e) => set("canContact", e.target.checked)}
-              aria-describedby="pf-contact-hint"
-            />
-            <div>
-              <label htmlFor="pf-contact-on">Can contact me</label>
-              <p id="pf-contact-hint" className="hint">
-                Saves a name or email here so it&apos;s ready to share. It&apos;s only sent on a request when you tick
-                “Share” on that request.
-              </p>
-            </div>
-          </div>
+          <Switch
+            id="pf-anon"
+            title="Anonymous by default"
+            description="Requests start without your contact info. You can still share it on any request."
+            checked={p.anonymousByDefault}
+            onChange={(v) => set("anonymousByDefault", v)}
+          />
+          <Switch
+            id="pf-contact-on"
+            title="Can contact me"
+            description="Saves a name or email here so it's ready to share. It's only sent on a request when you choose “Share” on that request."
+            checked={p.canContact}
+            onChange={(v) => set("canContact", v)}
+          />
           {p.canContact && (
-            <div className="field">
+            <div className="field mt-md">
               <label htmlFor="pf-contact">Name or email</label>
               <input
                 id="pf-contact"
@@ -146,20 +131,18 @@ export default function ProfileForm() {
           )}
         </Card>
 
-        <Card as="fieldset" className="fieldset-card">
-          <legend className="h3">Your accessibility needs</legend>
-          <p className="hint">
-            We use these to pre-fill requests and show what matches on event and building pages. They stay on this
-            device.
-          </p>
-          <div className="check-grid field">
-            {PROFILE_NEEDS.map((n) => (
-              <div key={n} className="field-check">
-                <input id={`pf-need-${n}`} type="checkbox" checked={p.needs.includes(n)} onChange={(e) => toggleNeed(n, e.target.checked)} />
-                <label htmlFor={`pf-need-${n}`}>{REQUEST_TYPE_LABELS[n]}</label>
-              </div>
-            ))}
-          </div>
+        <Card as="section" aria-labelledby="pf-needs-heading">
+          <h2 id="pf-needs-heading" className="h3">
+            Your accessibility needs
+          </h2>
+          <ChipPicker
+            idPrefix="pf-needs"
+            legend="Select those that apply"
+            hint="We use these to pre-fill requests and show what matches on event and building pages. They stay on this device."
+            options={PROFILE_NEEDS.map((n) => [n, REQUEST_TYPE_LABELS[n]])}
+            value={p.needs}
+            onChange={(v) => set("needs", v)}
+          />
           <div className="field">
             <label htmlFor="pf-notes">Describe anything helpful about accommodations</label>
             <p id="pf-notes-hint" className="hint">A note for yourself, e.g. what to ask for. Never sent anywhere.</p>
@@ -175,7 +158,7 @@ export default function ProfileForm() {
         )}
 
         <div className="button-row">
-          <Button type="submit" icon={Save}>
+          <Button type="submit" variant="cta">
             Save profile
           </Button>
           <p role="status" className="muted no-margin">

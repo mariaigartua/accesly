@@ -13,12 +13,14 @@ export async function GET(req) {
 // POST /api/spaces — save a space's accessibility info once, reuse it for every event there.
 export async function POST(req) {
   const body = await readJson(req);
-  if (!body?.building) return bad("building is required");
+  const building = typeof body?.building === "string" ? body.building.trim() : "";
+  if (!building) return bad("Add the building name.");
+  if (building.length > 200) return bad("Keep the building name under 200 characters.");
   const { spaces } = await collections();
   const doc = {
     campus: "UMass Amherst",
-    building: body.building,
-    room: body.room ?? "",
+    building,
+    room: String(body.room ?? "").trim().slice(0, 100),
     features: body.features ?? {}, // e.g. { elevator: { value: "Yes, east side", lastVerified: "2026-11-14" } }
     reports: [], // attendee-reported problems, e.g. "elevator out of service"
     createdAt: new Date(),

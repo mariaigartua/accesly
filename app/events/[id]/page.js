@@ -83,12 +83,10 @@ export default async function EventPage({ params }) {
               {event.org}
             </li>
           )}
-          {where && (
-            <li>
-              <MapPin aria-hidden="true" focusable="false" />
-              <a href={`/spaces/${space._id}`}>{where}</a>
-            </li>
-          )}
+          <li>
+            <MapPin aria-hidden="true" focusable="false" />
+            {where ? <a href={`/spaces/${space._id}`}>{where}</a> : "Location to be announced"}
+          </li>
         </ul>
       </header>
 

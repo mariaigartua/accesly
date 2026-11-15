@@ -99,9 +99,9 @@ export default async function ExplorePage({ searchParams }) {
             <p>{placeQ ? "No locations match that search. Try another word." : "No locations saved yet."}</p>
           )}
           <ul className="card-list">
-            {spaceCards.map((s) => (
+            {spaceCards.map((s, i) => (
               <li key={s._id}>
-                <SpaceCard space={s} />
+                <SpaceCard space={s} index={i} />
               </li>
             ))}
           </ul>
@@ -110,7 +110,7 @@ export default async function ExplorePage({ searchParams }) {
         <section id="events" aria-labelledby="events-heading" className="stack">
           <div className="toolbar">
             <h2 id="events-heading">Browse events</h2>
-            <Button href="/organizer/new" variant="secondary" icon={Plus}>
+            <Button href="/organizer/new" variant="cyan" icon={Plus}>
               Create event
             </Button>
           </div>
@@ -133,9 +133,9 @@ export default async function ExplorePage({ searchParams }) {
             <p>{eventQ ? "No upcoming events match that search. Try another word." : "No upcoming events yet."}</p>
           )}
           <ul className="card-list">
-            {events.map((e) => (
+            {events.map((e, i) => (
               <li key={String(e._id)}>
-                <EventCard event={toEventCard(e)} />
+                <EventCard event={toEventCard(e)} index={i} />
               </li>
             ))}
           </ul>

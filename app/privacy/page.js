@@ -1,4 +1,4 @@
-import { ShieldCheck } from "lucide-react";
+import { Plus, ShieldCheck } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 
@@ -68,8 +68,8 @@ export default function PrivacyPage() {
           </ul>
         </Card>
 
-        <Card as="section" aria-labelledby="ask-heading">
-          <h2 id="ask-heading">Ask a question</h2>
+        <section className="feature-card teal" aria-labelledby="ask-heading">
+          <h2 id="ask-heading">Still have a question?</h2>
           {/* Hands the question to Ally (help mode) via the URL; nothing is stored. */}
           <form action="/ally" method="get">
             <input type="hidden" name="mode" value="help" />
@@ -77,16 +77,23 @@ export default function PrivacyPage() {
               <label htmlFor="privacy-q">Your question about Accessly or your privacy</label>
               <textarea id="privacy-q" name="q" rows={3} required />
             </div>
-            <Button type="submit">Ask Ally</Button>
+            <Button type="submit" variant="cyan">
+              Ask Ally
+            </Button>
           </form>
-        </Card>
+        </section>
 
         <section aria-labelledby="faq-heading">
           <h2 id="faq-heading">FAQ</h2>
-          <div className="faq">
+          <div className="card faq">
             {FAQ.map(({ q, a }) => (
               <details key={q}>
-                <summary>{q}</summary>
+                <summary>
+                  <span>{q}</span>
+                  <span className="faq-plus" aria-hidden="true">
+                    <Plus focusable="false" />
+                  </span>
+                </summary>
                 <p>{a}</p>
               </details>
             ))}

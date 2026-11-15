@@ -1,6 +1,8 @@
+import { Check } from "lucide-react";
+
 /**
- * Progress indicator for multi-step flows: "Step 2 of 3" plus a labelled bar per step.
- * steps: ["Event details", "Location", "Questionnaire"]; current: 1-based index.
+ * Progress indicator for multi-step flows: "Step 2 of 3: Location", numbered circles
+ * (done = ✓ on teal, current = cyan), and a progress bar. current is 1-based.
  */
 export default function Stepper({ steps, current }) {
   return (
@@ -14,14 +16,22 @@ export default function Stepper({ steps, current }) {
           const state = n < current ? "done" : n === current ? "current" : "todo";
           return (
             <li key={s} data-state={state} aria-current={state === "current" ? "step" : undefined}>
-              <span className="visually-hidden">
-                {state === "done" ? "Completed: " : state === "todo" ? "Not started: " : "Current: "}
+              <span className="step-num" aria-hidden="true">
+                {state === "done" ? <Check focusable="false" width={18} height={18} /> : n}
               </span>
-              {s}
+              <span className="step-name">
+                <span className="visually-hidden">
+                  {state === "done" ? "Completed: " : state === "todo" ? "Not started: " : "Current: "}
+                </span>
+                {s}
+              </span>
             </li>
           );
         })}
       </ol>
+      <div className="progress" aria-hidden="true">
+        <span style={{ width: `${(current / steps.length) * 100}%` }} />
+      </div>
     </nav>
   );
 }

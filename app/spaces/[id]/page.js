@@ -94,9 +94,9 @@ export default async function SpacePage({ params }) {
               <p>No upcoming events in this place.</p>
             ) : (
               <ul className="card-list">
-                {events.map((e) => (
+                {events.map((e, i) => (
                   <li key={String(e._id)}>
-                    <EventCard event={toEventCard(e)} />
+                    <EventCard event={toEventCard(e)} index={i} />
                   </li>
                 ))}
               </ul>

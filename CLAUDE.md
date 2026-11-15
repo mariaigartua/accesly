@@ -27,12 +27,13 @@ Tagline: *Know before you go. Ask for what you need, without explaining why.*
 
 ## Brand and visual design
 Friendly, calm, rounded, lots of white space. Mobile-first, fully responsive.
+**The look follows the `accessly-design` skill** (hi-fi prototype: gray canvas, white cards, blue rounded-bottom header with a white tab track and cyan current tab, cyan uppercase CTA pills with an arrow circle, colored card rotation primary → sky → teal). Its prototype tokens live in `app/globals.css` next to the ones below. Home (`/`) is a full-screen blue splash with no app header (centered white wordmark, drifting circles with a Pause button for WCAG 2.2.2). Shared pickers: `components/ui/Pickers.js` (ChipPicker, Segmented, Switch).
 
 **Logos** (in `public/brand/`):
 - `accessly-icon.svg` — white figure (arms up) on a cyan→deep-blue gradient square. Use for the app icon/favicon, the Home logo, and the Ally avatar.
 - `accessly-wordmark.svg` — "Accessly" in brand teal with the figure as the "y". Use in the header.
 - Both need `alt` text: icon `alt=""` when next to the wordmark (decorative), wordmark `alt="Accessly"`.
-- **In the app use the web variants** (the originals are 768×768 with a white background and a 374 KB embedded PNG): `accessly-icon-web.svg` (pure vector, rounded, also `app/icon.svg` favicon), `accessly-wordmark-web.svg` (cropped, transparent) and `accessly-wordmark-web-dark.svg` (`#5ce1e6`, swapped in via `<picture>` for dark mode).
+- **In the app use the web variants** (the originals are 768×768 with a white background and a 374 KB embedded PNG): `accessly-icon-web.svg` (pure vector, rounded, also `app/icon.svg` favicon), `accessly-wordmark-web.svg` (cropped, transparent, teal), `accessly-wordmark-web-white.svg` (on the blue header and Home splash) and `accessly-wordmark-web-dark.svg` (cyan).
 - Shared UI lives in `components/ui/` (Button, Card, StatusBadge, NeedChips/TopicChips/NeedIcon, Notice, Stepper, BackLink, EventCard); header/tabs in `components/SiteHeader.js` + `components/TabBar.js`.
 
 **Color tokens** (contrast checked — don't swap without re-checking):
@@ -194,14 +195,14 @@ Env (`.env.local`, never commit): `MONGODB_URI`, `MONGODB_DB` (default `accessib
 - Run `npm run build` before every push. Clear commit messages.
 
 ## Status
-**Done:** scaffold, Atlas + Gemini setup and health check, API routes (spaces, events, chat, followups, requests), attendee event page (summary, grounded chat, anonymous request), request status page, per-event organizer queue, seed script. Items 1–4 below (design system; Home/Explore/Building page with search + anonymous reports; device-only Profile, My requests, Privacy & FAQ, profile-prefilled request form, client-side highlights in `lib/highlights.js`). Item 4: need types synced (`lib/prompts.js` ↔ `lib/labels.js`, legacy `quiet-space` still displays), `POST /api/requests` takes `needs[]` (legacy `type` still accepted), statuses renamed (old `pending` docs migrated by `ensureSetup()` in `lib/mongodb.js`, which also creates the TTL/unique indexes on every server start), `chats` collection + all chat/organizer endpoints in the API table, Organizer tab (`/organizer`, `/organizer/chats`), attendee chat page `/chats/[token]`, Profile → My chats. Organizer auth helpers in `lib/organizer.js`; also `POST /api/organizer/events { key }` finds the event for a pasted key. Design is still being finalised — new pages are functional first.
+**Done:** scaffold, Atlas + Gemini setup and health check, API routes (spaces, events, chat, followups, requests), attendee event page (summary, grounded chat, anonymous request), request status page, per-event organizer queue, seed script. Items 1–5 below (design system; Home/Explore/Building page with search + anonymous reports; device-only Profile, My requests, Privacy & FAQ, profile-prefilled request form, client-side highlights in `lib/highlights.js`). Item 4: need types synced (`lib/prompts.js` ↔ `lib/labels.js`, legacy `quiet-space` still displays), `POST /api/requests` takes `needs[]` (legacy `type` still accepted), statuses renamed (old `pending` docs migrated by `ensureSetup()` in `lib/mongodb.js`, which also creates the TTL/unique indexes on every server start), `chats` collection + all chat/organizer endpoints in the API table, Organizer tab (`/organizer`, `/organizer/chats`), attendee chat page `/chats/[token]`, Profile → My chats. Organizer auth helpers in `lib/organizer.js`; also `POST /api/organizer/events { key }` finds the event for a pasted key. Restyled to the hi-fi prototype in item 5.
 
 **Build next (priority order):**
 1. Design system: tokens, fonts (Bricolage Grotesque + Atkinson Hyperlegible), logos in `public/brand/`, responsive layout + TabBar, shared components. Restyle existing pages.
 2. Home main menu + Explore (locations + events with search) + Building page.
 3. Profile (device-only) + My requests + Privacy & FAQ; prefill request form from profile needs; personalized highlights.
 4. ✅ Data model updates: statuses (`awaiting`/`in-progress`), `needs[]`; new `chats` collection + endpoints (separate from requests); Organizer tab (multi-event requests, Your events, Chats inbox).
-5. Create event 3-step flow with AI questionnaire + organizer key confirmation.
+5. ✅ Create event 3-step flow with AI questionnaire + organizer key confirmation (`/organizer/new`, `components/CreateEventFlow.js`; `/api/events/followups` falls back to `FALLBACK_FOLLOWUPS` when Gemini is down).
 6. Ally (`/ally` + `/api/ally` with search grounding and sources).
 7. Quick start (describe what you want → AI picks the destination → confirm → go).
 8. Real verified UMass spaces in seed data; deploy to Vultr (add VM IP to Atlas Network Access).

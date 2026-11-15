@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { CircleAlert, KeyRound, MessagesSquare, Plus, RefreshCw, Trash } from "lucide-react";
+import { CalendarDays, CircleAlert, KeyRound, MessagesSquare, Plus, RefreshCw, Trash } from "lucide-react";
 import { STATUSES, STATUS_ORGANIZER_LABELS, formatDate } from "@/lib/labels";
 import { addMyEvent, getMyEvents, organizerKeys, removeMyEvent, useLocal } from "@/lib/local";
 import Button from "./ui/Button";
@@ -80,7 +80,7 @@ export default function OrganizerDashboard() {
           return (
             <section key={status} aria-labelledby={`grp-${status}`}>
               <h3 id={`grp-${status}`} className="group-heading">
-                {STATUS_ORGANIZER_LABELS[status]} ({list.length})
+                {STATUS_ORGANIZER_LABELS[status]} <span className="count-pill">{list.length}</span>
               </h3>
               <ul className="queue">
                 {list.map((r) => (
@@ -107,7 +107,7 @@ export default function OrganizerDashboard() {
             Chats ({unreadChats})
             <span className="visually-hidden"> unread</span>
           </Button>
-          <Button href="/organizer/new" variant="secondary" icon={Plus} block>
+          <Button href="/organizer/new" variant="cyan" icon={Plus} block>
             Create event
           </Button>
         </Card>
@@ -118,17 +118,38 @@ export default function OrganizerDashboard() {
             <p>No events on this device yet.</p>
           ) : (
             <ul className="card-list">
-              {myEvents.map((e) => {
+              {myEvents.map((e, i) => {
                 const ev = data.events.find((x) => x._id === e.eventId);
                 const count = data.requests.filter((r) => String(r.eventId) === e.eventId && r.status === "awaiting").length;
                 const bad = unverified.some((u) => u.eventId === e.eventId);
                 return (
-                  <Card as="li" key={e.eventId}>
-                    <h3 className="h3">
+                  <Card as="li" key={e.eventId} className="list-row">
+                    <span className={`row-thumb c${i % 3}`} aria-hidden="true">
+                      {ev ? (
+                        <>
+                          <span className="thumb-day">{new Date(ev.startsAt).getDate()}</span>
+                          <span className="thumb-month">{new Date(ev.startsAt).toLocaleDateString("en-US", { month: "short" })}</span>
+                        </>
+                      ) : (
+                        <CalendarDays focusable="false" />
+                      )}
+                    </span>
+                    <div className="row-body">
+                    <h3>
                       <Link href={`/organizer/${e.eventId}`}>{ev?.name ?? e.name ?? "Event"}</Link>
                     </h3>
-                    {ev && <p className="muted">{formatDate(ev.startsAt)}</p>}
-                    {ev && <p>{count ? `${count} awaiting a response` : "Nothing awaiting a response"}</p>}
+                    {ev && <p className="meta no-margin">{formatDate(ev.startsAt)}</p>}
+                    {ev && (
+                      <p className="no-margin">
+                        {count ? (
+                          <>
+                            <span className="count-pill">{count}</span> awaiting a response
+                          </>
+                        ) : (
+                          "Nothing awaiting a response"
+                        )}
+                      </p>
+                    )}
                     {bad && (
                       <p className="error-text">
                         <CircleAlert aria-hidden="true" focusable="false" />
@@ -140,6 +161,7 @@ export default function OrganizerDashboard() {
                         Remove from this device
                         <span className="visually-hidden">: {ev?.name ?? e.name ?? "event"}</span>
                       </Button>
+                    </div>
                     </div>
                   </Card>
                 );

@@ -106,8 +106,9 @@ export default function Chat({ eventId, eventName, onRequest, onMessage }) {
           </li>
         ))}
         {loading && (
-          <li className="msg msg-assistant" aria-busy="true">
-            <p>Checking the event info…</p>
+          <li className="thinking" aria-busy="true">
+            <span className="spinner" aria-hidden="true" />
+            Checking the event info…
           </li>
         )}
       </ol>
@@ -119,7 +120,7 @@ export default function Chat({ eventId, eventName, onRequest, onMessage }) {
         }}
       >
         <label htmlFor="chat-input">Your question about {eventName}</label>
-        <div className="input-row">
+        <div className="pill-field on-card">
           <input
             id="chat-input"
             type="text"
@@ -128,9 +129,9 @@ export default function Chat({ eventId, eventName, onRequest, onMessage }) {
             placeholder="e.g. Is there seating near the exit?"
             autoComplete="off"
           />
-          <Button type="submit" icon={Send} disabled={loading || !input.trim()}>
-            Ask
-          </Button>
+          <button type="submit" className="icon-btn" aria-label="Ask" disabled={loading || !input.trim()}>
+            <Send aria-hidden="true" focusable="false" />
+          </button>
         </div>
       </form>
     </Card>

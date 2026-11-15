@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CircleAlert, Copy, HandHeart, Lock } from "lucide-react";
+import { CircleAlert, Copy, HandHeart } from "lucide-react";
 import { REQUEST_TYPE_LABELS } from "@/lib/labels";
 import { addMyRequest, getProfile, useLocal, DEFAULT_PROFILE } from "@/lib/local";
 import Button from "./ui/Button";
 import Card from "./ui/Card";
 import Notice from "./ui/Notice";
+import { ChipPicker } from "./ui/Pickers";
 
 // React 19: `ref` is a normal prop for function components.
 // `prefill` = { type, note, n } from the event chat; `n` changes on every suggestion.
@@ -44,11 +45,6 @@ export default function RequestForm({ eventId, eventName, prefill, ref }) {
     setNote(prefill.note ?? "");
     setFromProfile(false);
   }, [prefill]);
-
-  function toggleNeed(n, on) {
-    touched.current = true;
-    setNeeds((cur) => (on ? [...cur, n] : cur.filter((x) => x !== n)));
-  }
 
   async function submit(e) {
     e.preventDefault();
@@ -114,27 +110,18 @@ export default function RequestForm({ eventId, eventName, prefill, ref }) {
         </Notice>
       ) : (
         <form onSubmit={submit} noValidate>
-          <fieldset className="field" aria-describedby={[fromProfile && "req-needs-hint", error && "req-error"].filter(Boolean).join(" ") || undefined}>
-            <legend className="label">What do you need?</legend>
-            {fromProfile && (
-              <p id="req-needs-hint" className="hint">
-                Pre-filled from your Profile. Untick anything you don&apos;t need for this event.
-              </p>
-            )}
-            <div className="check-grid">
-              {Object.entries(REQUEST_TYPE_LABELS).map(([value, label]) => (
-                <div key={value} className="field-check">
-                  <input
-                    id={`req-need-${value}`}
-                    type="checkbox"
-                    checked={needs.includes(value)}
-                    onChange={(e) => toggleNeed(value, e.target.checked)}
-                  />
-                  <label htmlFor={`req-need-${value}`}>{label}</label>
-                </div>
-              ))}
-            </div>
-          </fieldset>
+          <ChipPicker
+            idPrefix="req-needs"
+            legend="What do you need?"
+            hint={fromProfile ? "Pre-filled from your Profile. Untick anything you don't need for this event." : undefined}
+            options={Object.entries(REQUEST_TYPE_LABELS)}
+            value={needs}
+            onChange={(v) => {
+              touched.current = true;
+              setNeeds(v);
+            }}
+            describedBy={error ? "req-error" : undefined}
+          />
 
           <div className="field">
             <label htmlFor="req-note">Details (optional)</label>
@@ -185,7 +172,7 @@ export default function RequestForm({ eventId, eventName, prefill, ref }) {
             </p>
           )}
 
-          <Button type="submit" icon={shareContact ? undefined : Lock} disabled={submitting}>
+          <Button type="submit" variant="cta" disabled={submitting}>
             {submitting ? "Sending…" : shareContact ? "Send request" : "Send anonymous request"}
           </Button>
         </form>
