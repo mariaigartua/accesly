@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, CircleAlert, Trash } from "lucide-react";
+import { Check, ChevronDown, CircleAlert, Trash } from "lucide-react";
 import { clearAll, getProfile, saveProfile, storageAvailable, useLocal, DEFAULT_PROFILE } from "@/lib/local";
 import { PROFILE_NEEDS, REQUEST_TYPE_LABELS } from "@/lib/labels";
 import Avatar, { AVATARS } from "./ui/Avatar";
@@ -19,6 +19,8 @@ export default function ProfileForm() {
   const [confirmClear, setConfirmClear] = useState(false);
   const [noStorage, setNoStorage] = useState(false);
   const loadedOnce = useRef(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  const avatarButton = useRef(null);
 
   // Load the saved profile into the form once (later storage changes mustn't wipe unsaved edits).
   useEffect(() => {
@@ -64,31 +66,74 @@ export default function ProfileForm() {
       <form onSubmit={save} noValidate className="stack">
         <Card as="fieldset" className="fieldset-card">
           <legend className="h3">About you (all optional)</legend>
-          <fieldset className="field">
-            <legend className="label">Avatar</legend>
-            <div className="avatar-choices">
-              {Object.entries(AVATARS).map(([id, a]) => (
-                <label key={id} className="avatar-choice">
-                  <input
-                    type="radio"
-                    name="avatar"
-                    value={id}
-                    checked={p.avatar === id}
-                    onChange={() => set("avatar", id)}
-                  />
-                  <Check className="pick-check" aria-hidden="true" focusable="false" />
-                  <Avatar id={id} size={40} />
-                  <span>{a.label}</span>
-                </label>
-              ))}
-              <label className="avatar-choice">
-                <input type="radio" name="avatar" value="" checked={!p.avatar} onChange={() => set("avatar", "")} />
-                <Check className="pick-check" aria-hidden="true" focusable="false" />
-                <Avatar id="" size={40} />
-                <span>None</span>
-              </label>
+          <div className="field avatar-field">
+            <span className="label" id="pf-avatar-label">
+              Avatar
+            </span>
+            <div className="avatar-current">
+              <Avatar id={p.avatar} size={56} />
+              <span className="avatar-current-name">{AVATARS[p.avatar]?.label ?? "None"}</span>
+              <button
+                type="button"
+                ref={avatarButton}
+                className="btn btn-secondary btn-pill"
+                aria-expanded={avatarOpen}
+                aria-controls="pf-avatar-panel"
+                aria-describedby="pf-avatar-label"
+                onClick={() => setAvatarOpen((v) => !v)}
+              >
+                Change avatar
+                <ChevronDown aria-hidden="true" focusable="false" className={`chevron${avatarOpen ? " open" : ""}`} />
+              </button>
             </div>
-          </fieldset>
+            {avatarOpen && (
+              <fieldset
+                id="pf-avatar-panel"
+                className="avatar-panel"
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    setAvatarOpen(false);
+                    avatarButton.current?.focus();
+                  }
+                }}
+              >
+                <legend className="visually-hidden">Choose an avatar</legend>
+                <div className="avatar-choices">
+                  {[...Object.entries(AVATARS), ["", { label: "None" }]].map(([id, a]) => (
+                    <label key={id || "none"} className="avatar-choice">
+                      <input
+                        type="radio"
+                        name="avatar"
+                        value={id}
+                        checked={(p.avatar || "") === id}
+                        onChange={() => set("avatar", id)}
+                        onClick={(e) => {
+                          // Mouse/touch pick closes the panel; arrow keys only move the selection.
+                          if (e.detail > 0) {
+                            setAvatarOpen(false);
+                            avatarButton.current?.focus();
+                          }
+                        }}
+                      />
+                      <Check className="pick-check" aria-hidden="true" focusable="false" />
+                      <Avatar id={id} size={40} />
+                      <span>{a.label}</span>
+                    </label>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-pill mt-md"
+                  onClick={() => {
+                    setAvatarOpen(false);
+                    avatarButton.current?.focus();
+                  }}
+                >
+                  Done
+                </button>
+              </fieldset>
+            )}
+          </div>
           <div className="field">
             <label htmlFor="pf-username">Username</label>
             <input id="pf-username" type="text" value={p.username} onChange={(e) => set("username", e.target.value)} autoComplete="nickname" />

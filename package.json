@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start -p ${PORT:-3000}",
     "seed": "node --env-file=.env.local scripts/seed.mjs",
+    "seed:examples": "node --env-file=.env.local scripts/seed-examples.mjs",
     "check": "node --env-file=.env.local scripts/check-setup.mjs"
   },
   "dependencies": {
