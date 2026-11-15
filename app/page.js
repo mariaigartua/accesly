@@ -33,7 +33,7 @@ export default async function Home() {
       <ul>
         {events.map((e) => (
           <li key={String(e._id)}>
-            <strong>{e.name}</strong>
+            <a href={`/events/${e._id}`}><strong>{e.name}</strong></a>
             {e.org ? ` · ${e.org}` : ""}
             {" · "}
             <time dateTime={new Date(e.startsAt).toISOString()}>

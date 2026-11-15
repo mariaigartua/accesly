@@ -59,5 +59,7 @@ const { insertedId: eventId } = await events.insertOne({
 });
 console.log("✓ example event", String(eventId));
 console.log("  organizer key (for the request dashboard):", organizerKey);
+console.log(`  attendee page:   http://localhost:3000/events/${eventId}`);
+console.log(`  organizer queue: http://localhost:3000/organizer/${eventId}`);
 
 await client.close();
