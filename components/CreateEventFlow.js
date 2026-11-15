@@ -13,9 +13,9 @@ import ShareEventCard from "./ShareEventCard";
 
 const STEPS = ["Event details", "Location", "Accessibility questions"];
 const ANSWERS = [
-  ["yes", "Yes"],
-  ["no", "No"],
-  ["unsure", "Not sure"],
+  ["yes", "Yes", "yes"], // third item = color tone when selected
+  ["no", "No", "no"],
+  ["unsure", "Not sure", "unsure"],
 ];
 const ANSWER_TEXT = { yes: "Yes", no: "No", unsure: "Not sure yet" };
 

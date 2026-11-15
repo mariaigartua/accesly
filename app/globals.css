@@ -396,6 +396,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .card:focus { outline: 3px solid var(--focus); outline-offset: 3px; }
 @media (min-width: 640px) { .card { padding: 1.5rem; } }
 .card-tint { background: var(--cyan-tint); border-color: transparent; box-shadow: none; }
+/* "For your needs": soft gray card so it stands apart from the white cards and the blue headings. */
+.hl-card { background: #e8ebef; border-color: #d3d8de; box-shadow: none; }
+@media (prefers-color-scheme: dark) { .hl-card { background: #1f2329; border-color: #343a42; } }
 
 /* A card whose title link covers the whole card. */
 .card-link { position: relative; }
@@ -475,6 +478,23 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .meta svg { width: 1.15rem; height: 1.15rem; flex: none; }
 
 .section-heading { display: flex; align-items: center; gap: 0.5rem; }
+
+/* Section markers: every section heading (h2) starts with a highlighted band so it's clear
+   a new part begins. Skipped on colored/hero cards, notices and visually-hidden headings. */
+main h2:not(.visually-hidden):not(.h3):where(:not(.feature-card *, .notice *, .start-answer *, .event-card *, .menu-card *, .splash *)) {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.5rem 1rem 0.5rem 0.875rem;
+  border-left: 6px solid var(--cyan);
+  border-radius: 6px 14px 14px 6px;
+  background: var(--primary);
+  color: var(--on-primary); /* white on blue (7.8:1); dark text on light blue in dark mode */
+  line-height: 1.3;
+}
+main h2:not(.visually-hidden):not(.h3):where(:not(.feature-card *, .notice *, .start-answer *, .event-card *, .menu-card *, .splash *)) svg { color: inherit; }
+main h2:not(.visually-hidden):not(.h3):where(:not(.feature-card *, .notice *, .start-answer *, .event-card *, .menu-card *, .splash *)) a { color: inherit; }
 .section-heading svg { width: 1.4rem; height: 1.4rem; color: var(--accent); flex: none; }
 .feature-card .section-heading svg { color: inherit; }
 
@@ -646,6 +666,11 @@ body:has(.splash) main { max-width: none; padding: 0; }
 .pick:has(input:checked) .pick-check { display: inline; }
 .pick:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
 .pick:hover { border-color: var(--primary); }
+/* Yes / No / Not sure pickers take the answer colors when selected. */
+.pick-yes:has(input:checked) { background: var(--badge-confirmed-bg); border-color: var(--status-confirmed); color: var(--status-confirmed); }
+.pick-no:has(input:checked) { background: var(--badge-cannot-bg); border-color: var(--status-cannot); color: var(--status-cannot); }
+.pick-unsure:has(input:checked) { background: var(--badge-awaiting-bg); border-color: var(--status-awaiting); color: var(--status-awaiting); }
+.pick-yes:has(input:checked), .pick-no:has(input:checked), .pick-unsure:has(input:checked) { box-shadow: inset 0 0 0 1px currentColor; }
 .pick-count { color: var(--muted); font-size: 1rem; margin: 0.5rem 0 0; }
 
 /* Segmented single choice (Yes / No / Not sure). */
@@ -826,6 +851,18 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .info-list dd { margin: 0; }
 .info-list + h3 { margin-top: 1.75rem; }
 .checked-date { display: block; color: var(--muted); font-size: 1rem; }
+
+/* Yes / No / Not sure tags: green / red / amber, always icon + text. */
+.answer-value { display: inline; }
+.answer-tag {
+  display: inline-flex; align-items: center; gap: 0.3rem; vertical-align: 0.05em;
+  margin-right: 0.5rem; padding: 0.1rem 0.65rem 0.1rem 0.5rem; border-radius: var(--radius-pill);
+  font: 800 1rem/1.5 var(--font-heading); border: 1px solid currentColor;
+}
+.answer-tag svg { width: 1.05rem; height: 1.05rem; flex: none; }
+.answer-yes { color: var(--status-confirmed); background: var(--badge-confirmed-bg); }
+.answer-no { color: var(--status-cannot); background: var(--badge-cannot-bg); }
+.answer-unsure { color: var(--status-awaiting); background: var(--badge-awaiting-bg); }
 
 .report-list { list-style: none; padding: 0; margin: 0; }
 .report-list li { padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
@@ -1120,12 +1157,12 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 
 .hl-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.75rem; }
 .hl-list p { margin: 0; }
-.hl-title { display: flex; gap: 0.5rem; align-items: flex-start; }
-.hl-title svg { width: 1.3rem; height: 1.3rem; flex: none; margin-top: 0.2rem; }
-.hl-detail { padding-left: 1.8rem; color: var(--muted); }
-.hl-info .hl-title svg { color: var(--status-confirmed); }
-.hl-not-available .hl-title svg { color: var(--status-cannot); }
-.hl-not-confirmed .hl-title svg { color: var(--status-awaiting); }
+.hl-title { display: flex; flex-wrap: wrap; gap: 0.35rem 0.6rem; align-items: center; }
+.hl-detail { color: var(--muted); }
+.hl-list > li { padding-left: 0.875rem; border-left: 4px solid var(--border); }
+.hl-info { border-left-color: var(--status-confirmed) !important; }
+.hl-not-available { border-left-color: var(--status-cannot) !important; }
+.hl-not-confirmed { border-left-color: var(--status-awaiting) !important; }
 
 .faq { padding: 0.25rem 1.25rem; }
 .faq details + details { border-top: 1px solid var(--border); }

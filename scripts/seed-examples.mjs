@@ -1,6 +1,7 @@
 // npm run seed:examples — loads the demo set: 8 fictional UMass-flavored spaces + 10 upcoming events.
 // The places are made up (not real buildings), so no real building facts are invented.
-// Each doc is flagged `example: true`; re-running removes the previous set (and requests/chats on it) first.
+// Each doc is flagged `example: true`. Re-running updates them in place: ids, organizer keys and
+// short links stay the same; requests, chats and reports people sent are kept.
 import { MongoClient } from "mongodb";
 import crypto from "node:crypto";
 import { writeFileSync } from "node:fs";
@@ -20,15 +21,12 @@ const events = db.collection("events");
 const requests = db.collection("requests");
 const chats = db.collection("chats");
 
-// ---- Remove previous examples ----
-const isExampleSpace = { $or: [{ example: true }, { building: /EXAMPLE/ }] };
-const isExampleEvent = { $or: [{ example: true }, { name: /^EXAMPLE/ }] };
-const oldEventIds = (await events.find(isExampleEvent, { projection: { _id: 1 } }).toArray()).map((e) => e._id);
-const delReq = await requests.deleteMany({ eventId: { $in: oldEventIds } });
-const delChat = await chats.deleteMany({ eventId: { $in: oldEventIds } });
-const delEv = await events.deleteMany(isExampleEvent);
-const delSp = await spaces.deleteMany(isExampleSpace);
-console.log(`✓ removed old examples: ${delSp.deletedCount} spaces, ${delEv.deletedCount} events, ${delReq.deletedCount} requests, ${delChat.deletedCount} chats`);
+// ---- Remove leftovers from the old one-off seed ("EXAMPLE Hall", "EXAMPLE: …") ----
+const legacyIds = (await events.find({ name: /^EXAMPLE/ }, { projection: { _id: 1 } }).toArray()).map((e) => e._id);
+await requests.deleteMany({ eventId: { $in: legacyIds } });
+await chats.deleteMany({ eventId: { $in: legacyIds } });
+await events.deleteMany({ name: /^EXAMPLE/ });
+await spaces.deleteMany({ building: /EXAMPLE/ });
 
 // ---- Spaces (fictional) ----
 const day = 24 * 60 * 60 * 1000;
@@ -41,11 +39,11 @@ const SPACES = [
     building: "Minuteman Union",
     room: "Ballroom, floor 1",
     features: {
-      entrance: f("Step-free main entrance with automatic doors facing the plaza", 6),
-      elevator: f("Elevator next to the information desk, serves all floors", 6),
-      restrooms: f("All-gender accessible restroom on floor 1, near the ballroom", 12),
+      entrance: f("Yes. Step-free main entrance with automatic doors facing the plaza", 6),
+      elevator: f("Yes. Next to the information desk, serves all floors", 6),
+      restrooms: f("Yes. All-gender accessible restroom on floor 1, near the ballroom", 12),
       seating: f("Movable chairs and tables; wheelchair spaces can be set up on request", 6),
-      noise: f("Can get loud when the ballroom is full; a quiet lounge is across the hall", 20),
+      noise: f("Not sure. Can get loud when the ballroom is full; a quiet lounge is across the hall", 20),
     },
     reports: [{ text: "Automatic door button on the plaza side was slow to open this week.", daysAgo: 2 }],
   },
@@ -54,10 +52,10 @@ const SPACES = [
     building: "North Quad Library",
     room: "Quiet Study Room 3, floor 2",
     features: {
-      entrance: f("Step-free entrance on the east side via a ramp; the front steps have no ramp", 9),
-      elevator: f("Two elevators in the lobby", 9),
-      restrooms: f("Accessible restrooms on floors 1 and 2", 9),
-      noise: f("Quiet floor: no talking above a whisper", 3),
+      entrance: f("Yes. Step-free entrance on the east side via a ramp; the front steps have no ramp", 9),
+      elevator: f("Yes. Two elevators in the lobby", 9),
+      restrooms: f("Yes. Accessible restrooms on floors 1 and 2", 9),
+      noise: f("Yes. Quiet floor: no talking above a whisper", 3),
       lighting: f("Adjustable desk lamps; overhead lights can be dimmed in study rooms", 30),
     },
     reports: [],
@@ -67,11 +65,11 @@ const SPACES = [
     building: "Maple Hall",
     room: "Auditorium 101",
     features: {
-      entrance: f("Step-free entrance at the back of the building (Pond Road side)", 14),
-      elevator: f("No elevator; the auditorium is on the ground floor", 14),
+      entrance: f("Yes. Step-free entrance at the back of the building (Pond Road side)", 14),
+      elevator: f("No. The auditorium is on the ground floor, so you don't need one", 14),
       seating: f("Fixed tiered seating; 4 wheelchair spaces in the front row", 14),
-      captions: f("Projector and screen support captions; ask the organizer to turn them on", 40),
-      hearing: f("Assistive listening system available; headsets at the AV desk", 40),
+      captions: f("Not sure. The projector supports captions; ask the organizer to turn them on", 40),
+      hearing: f("Yes. Assistive listening headsets at the AV desk", 40),
     },
     reports: [{ text: "Ramp at the back entrance had snow on it in the morning.", daysAgo: 1 }],
   },
@@ -80,9 +78,9 @@ const SPACES = [
     building: "Hilltop Arts Center",
     room: "Black Box Theater",
     features: {
-      entrance: f("Step-free entrance from the parking lot; main entrance has 6 steps", 21),
-      elevator: f("Elevator to the theater level, key from the box office", 21),
-      lighting: f("Shows may use strobe or flashing lights; check each event", 21),
+      entrance: f("Yes. From the parking lot; the main entrance has 6 steps", 21),
+      elevator: f("Yes. To the theater level, key from the box office", 21),
+      lighting: f("Not sure. Shows may use strobe or flashing lights; check each event", 21),
       seating: f("Flexible seating; wheelchair spaces on the floor level", 21),
     },
     reports: [],
@@ -92,11 +90,11 @@ const SPACES = [
     building: "Riverbend Science Building",
     room: "Lecture Hall 140",
     features: {
-      entrance: f("Step-free entrance on the north side", 5),
-      elevator: f("Elevators at both ends of the main hallway", 5),
-      restrooms: f("Accessible restroom on every floor", 5),
+      entrance: f("Yes. Step-free entrance on the north side", 5),
+      elevator: f("Yes. At both ends of the main hallway", 5),
+      restrooms: f("Yes. Accessible restroom on every floor", 5),
       seating: f("Tiered seating; level wheelchair spaces at the top and bottom rows", 5),
-      captions: f("Lecture capture with live captions for scheduled classes", 60),
+      captions: f("Not sure. Live captions for scheduled classes only", 60),
     },
     reports: [],
   },
@@ -105,9 +103,9 @@ const SPACES = [
     building: "Orchard Rec Center",
     room: "Multipurpose Court B",
     features: {
-      entrance: f("Step-free entrance with a power-assisted door", 10),
-      elevator: f("Elevator to the courts level", 10),
-      noise: f("Echoey gym space, loud during games", 10),
+      entrance: f("Yes. Power-assisted door at the main entrance", 10),
+      elevator: f("Yes. Elevator to the courts level", 10),
+      noise: f("No. Echoey gym space, loud during games", 10),
       restrooms: f("Accessible locker room and all-gender restroom near Court B", 10),
     },
     reports: [{ text: "Elevator to the courts was out of service on Saturday.", daysAgo: 4 }],
@@ -117,7 +115,7 @@ const SPACES = [
     building: "Commonwealth Dining Commons",
     room: "Pond View Event Room",
     features: {
-      entrance: f("Step-free entrance from the main dining hall", 8),
+      entrance: f("Yes. Step-free entrance from the main dining hall", 8),
       dietary: f("Kitchen can label allergens and prepare vegan, gluten-free and halal options with notice", 8),
       noise: f("Separate room with a door, quieter than the main dining hall", 8),
     },
@@ -128,27 +126,34 @@ const SPACES = [
     building: "Pondside Commons",
     room: "Lounge 120",
     features: {
-      entrance: f("Step-free entrance from the pond path", 35),
-      noise: f("Soft seating and carpet, usually calm", 35),
+      entrance: f("Yes. Step-free entrance from the pond path", 35),
+      noise: f("Yes. Soft seating and carpet, usually calm", 35),
     },
     reports: [],
   },
 ];
 
 const spaceIds = {};
+// Upsert by name: existing demo docs keep their _id (and events keep their organizer key and
+// short link), so re-running only refreshes the text and dates.
 for (const s of SPACES) {
-  const { insertedId } = await spaces.insertOne({
-    campus: "UMass Amherst",
-    building: s.building,
-    room: s.room,
-    features: s.features,
-    reports: s.reports.map((r) => ({ text: r.text, createdAt: new Date(Date.now() - r.daysAgo * day) })),
-    example: true,
-    createdAt: new Date(),
-  });
-  spaceIds[s.key] = insertedId;
+  const doc = await spaces.findOneAndUpdate(
+    { example: true, building: s.building },
+    {
+      $set: { campus: "UMass Amherst", room: s.room, features: s.features },
+      // Keep reports people sent from the live site; seed ones only on first insert.
+      $setOnInsert: {
+        reports: s.reports.map((r) => ({ text: r.text, createdAt: new Date(Date.now() - r.daysAgo * day) })),
+        example: true,
+        createdAt: new Date(),
+      },
+    },
+    { upsert: true, returnDocument: "after" },
+  );
+  spaceIds[s.key] = doc._id;
 }
-console.log(`✓ ${SPACES.length} example spaces`);
+const staleSpaces = await spaces.deleteMany({ example: true, _id: { $nin: Object.values(spaceIds) } });
+console.log(`✓ ${SPACES.length} demo spaces (${staleSpaces.deletedCount} old removed)`);
 
 // ---- Events (fictional orgs, upcoming) ----
 function at(daysFromNow, hour, minute = 0) {
@@ -164,9 +169,9 @@ const EVENTS = [
     description: "Board games, card games and snacks. All games have large-print rule cards. Drop in any time.",
     space: "union", start: at(2, 18), hours: 3,
     accessibility: {
-      food: "Snacks with allergen labels; vegan and gluten-free options",
+      food: "Yes. Snacks with allergen labels; vegan and gluten-free options",
       seating: "Tables at wheelchair height; reserved seats near the entrance",
-      materials: "Large-print rule cards for every game",
+      materials: "Yes. Large-print rule cards for every game",
       noise: "Quiet table in the corner for anyone who wants a calmer space",
     },
   },
@@ -176,8 +181,8 @@ const EVENTS = [
     description: "Tips for finals: planning, note-taking and focus. Slides shared a day before.",
     space: "library", start: at(3, 16), hours: 1.5,
     accessibility: {
-      materials: "Slides and handouts emailed in advance to anyone who asks",
-      captions: "Live captions on the screen",
+      materials: "Yes. Slides and handouts emailed in advance to anyone who asks",
+      captions: "Yes. Live captions on the screen",
       noise: "Small group in a quiet study room",
     },
   },
@@ -187,8 +192,8 @@ const EVENTS = [
     description: "Student and alumni panel on disability, identity and campus life, followed by Q&A.",
     space: "maple", start: at(4, 19), hours: 2,
     accessibility: {
-      asl: "Two ASL interpreters confirmed",
-      captions: "CART live captioning on the main screen",
+      asl: "Yes. Two ASL interpreters confirmed",
+      captions: "Yes. CART live captioning on the main screen",
       seating: "Front-row wheelchair spaces and reserved seats near the aisle",
       materials: "Panel questions shared in advance",
     },
@@ -199,7 +204,7 @@ const EVENTS = [
     description: "Poetry, music and comedy. Sign up at the door or just listen.",
     space: "arts", start: at(5, 20), hours: 2.5,
     accessibility: {
-      lighting: "No strobe lights; stage lights stay steady",
+      lighting: "Yes. Steady stage lights, no strobes",
       seating: "Mix of chairs and cushions; floor-level wheelchair spaces",
     },
   },
@@ -209,8 +214,8 @@ const EVENTS = [
     description: "A beginner-friendly talk on building your first robot, with live demos.",
     space: "science", start: at(6, 17, 30), hours: 1.5,
     accessibility: {
-      captions: "Auto captions on the projector",
-      materials: "Slides posted online after the talk",
+      captions: "Not sure. Auto captions on the projector, accuracy may vary",
+      materials: "No. Slides are posted online after the talk",
     },
   },
   {
@@ -219,7 +224,7 @@ const EVENTS = [
     description: "Try wheelchair basketball, goalball and seated volleyball. Equipment provided, all levels welcome.",
     space: "rec", start: at(8, 13), hours: 3,
     accessibility: {
-      equipment: "Sports wheelchairs and goalball eyeshades provided",
+      equipment: "Yes. Sports wheelchairs and goalball eyeshades provided",
       noise: "Gym gets loud; ear defenders available at the check-in table",
       restrooms: "Accessible locker room next to the court",
     },
@@ -230,7 +235,7 @@ const EVENTS = [
     description: "Dishes from around the world, made by student clubs. Every dish has an ingredients card.",
     space: "dining", start: at(9, 17), hours: 2,
     accessibility: {
-      food: "Every dish labelled with ingredients and allergens; vegan, halal and gluten-free options",
+      food: "Yes. Every dish labelled with ingredients and allergens; vegan, halal and gluten-free options",
       seating: "Seating area with tables; servers can bring food to your table",
     },
   },
@@ -250,7 +255,7 @@ const EVENTS = [
     description: "Meet 40+ student clubs, grab freebies and sign up for newsletters.",
     space: "union", start: at(12, 11), hours: 4,
     accessibility: {
-      noise: "Busy and loud; quieter hour from 11 to 12 with no music",
+      noise: "No. Busy and loud; quieter hour from 11 to 12 with no music",
     },
   },
   {
@@ -259,7 +264,7 @@ const EVENTS = [
     description: "Screening of a short documentary on accessible design, then an open discussion.",
     space: "maple", start: at(15, 19), hours: 2,
     accessibility: {
-      captions: "Open captions on the film",
+      captions: "Yes. Open captions on the film",
       hearing: "Assistive listening headsets at the AV desk",
     },
   },
@@ -268,24 +273,36 @@ const EVENTS = [
 // Short links /e/<slug> (same rules as lib/slug.js).
 const slugify = (t) => t.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/g, "");
 const keys = [];
+const eventIds = [];
 for (const e of EVENTS) {
-  const organizerKey = crypto.randomBytes(16).toString("hex");
-  const { insertedId } = await events.insertOne({
-    name: e.name,
-    org: e.org,
-    description: e.description,
-    startsAt: e.start,
-    endsAt: new Date(e.start.getTime() + e.hours * 60 * 60 * 1000),
-    spaceId: spaceIds[e.space],
-    accessibility: e.accessibility,
-    organizerKey,
-    slug: slugify(e.name),
-    example: true,
-    createdAt: new Date(),
-  });
-  keys.push({ name: e.name, id: String(insertedId), organizerKey, slug: slugify(e.name) });
+  const doc = await events.findOneAndUpdate(
+    { example: true, name: e.name },
+    {
+      $set: {
+        org: e.org,
+        description: e.description,
+        startsAt: e.start,
+        endsAt: new Date(e.start.getTime() + e.hours * 60 * 60 * 1000),
+        spaceId: spaceIds[e.space],
+        accessibility: e.accessibility,
+      },
+      $setOnInsert: {
+        organizerKey: crypto.randomBytes(16).toString("hex"),
+        slug: slugify(e.name),
+        example: true,
+        createdAt: new Date(),
+      },
+    },
+    { upsert: true, returnDocument: "after" },
+  );
+  eventIds.push(doc._id);
+  keys.push({ name: e.name, id: String(doc._id), organizerKey: doc.organizerKey, slug: doc.slug });
 }
-console.log(`✓ ${EVENTS.length} example events`);
+const staleIds = (await events.find({ example: true, _id: { $nin: eventIds } }, { projection: { _id: 1 } }).toArray()).map((e) => e._id);
+await requests.deleteMany({ eventId: { $in: staleIds } });
+await chats.deleteMany({ eventId: { $in: staleIds } });
+await events.deleteMany({ _id: { $in: staleIds } });
+console.log(`✓ ${EVENTS.length} demo events (${staleIds.length} old removed; keys and short links kept)`);
 // Keys are saved locally (gitignored) so you can paste one into the Organizer tab to manage that event.
 const KEYS_FILE = "example-organizer-keys.txt";
 writeFileSync(

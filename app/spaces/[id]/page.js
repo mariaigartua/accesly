@@ -8,6 +8,7 @@ import PersonalHighlights from "@/components/PersonalHighlights";
 import BackLink from "@/components/ui/BackLink";
 import Card from "@/components/ui/Card";
 import EventCard from "@/components/ui/EventCard";
+import AnswerValue from "@/components/ui/AnswerTag";
 import { iconForTopic } from "@/components/ui/NeedChips";
 
 export const dynamic = "force-dynamic";
@@ -76,7 +77,7 @@ export default async function SpacePage({ params }) {
                         {humanize(key)}
                       </dt>
                       <dd>
-                        {v?.value ?? String(v)}
+                        <AnswerValue value={v?.value ?? String(v)} />
                         <span className="checked-date">
                           {v?.lastVerified ? `Last checked ${v.lastVerified}` : "Date not recorded"}
                         </span>

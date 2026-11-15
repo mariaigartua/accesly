@@ -8,6 +8,7 @@ import BackLink from "@/components/ui/BackLink";
 import Card from "@/components/ui/Card";
 import Notice from "@/components/ui/Notice";
 import { iconForTopic } from "@/components/ui/NeedChips";
+import AnswerValue from "@/components/ui/AnswerTag";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +33,7 @@ function InfoList({ items }) {
               {humanize(key)}
             </dt>
             <dd>
-              {value}
+              <AnswerValue value={value} />
               {checked && <span className="checked-date">Last checked {checked}</span>}
             </dd>
           </div>

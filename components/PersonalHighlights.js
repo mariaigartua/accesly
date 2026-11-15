@@ -8,9 +8,9 @@ import { needLabel } from "@/lib/labels";
 import Card from "./ui/Card";
 
 const STATUS = {
-  info: { icon: CircleCheck, text: "Info on file", className: "hl-info" },
-  "not-available": { icon: CircleX, text: "Listed as not available", className: "hl-not-available" },
-  "not-confirmed": { icon: CircleHelp, text: "Not confirmed", className: "hl-not-confirmed" },
+  info: { icon: CircleCheck, text: "Info on file", className: "hl-info", tone: "yes" },
+  "not-available": { icon: CircleX, text: "Listed as not available", className: "hl-not-available", tone: "no" },
+  "not-confirmed": { icon: CircleHelp, text: "Not confirmed", className: "hl-not-confirmed", tone: "unsure" },
 };
 
 /**
@@ -25,7 +25,7 @@ export default function PersonalHighlights({ entries, requestHref }) {
   const needs = profile.needs ?? [];
   if (!needs.length) {
     return (
-      <Card as="section" tint aria-labelledby="hl-heading">
+      <Card as="section" className="hl-card" aria-labelledby="hl-heading">
         <h2 id="hl-heading" className="section-heading">
           <UserRound aria-hidden="true" focusable="false" />
           For your needs
@@ -39,7 +39,7 @@ export default function PersonalHighlights({ entries, requestHref }) {
 
   const results = computeHighlights(needs, entries);
   return (
-    <Card as="section" tint aria-labelledby="hl-heading">
+    <Card as="section" className="hl-card" aria-labelledby="hl-heading">
       <h2 id="hl-heading" className="section-heading">
         <UserRound aria-hidden="true" focusable="false" />
         For your needs
@@ -47,13 +47,14 @@ export default function PersonalHighlights({ entries, requestHref }) {
       <p className="muted">Checked on this device against your Profile. Nothing is sent.</p>
       <ul className="hl-list">
         {results.map(({ need, status, matches }) => {
-          const { icon: Icon, text, className } = STATUS[status];
+          const { icon: Icon, text, className, tone } = STATUS[status];
           return (
             <li key={need} className={className}>
               <p className="hl-title">
-                <Icon aria-hidden="true" focusable="false" />
-                <span>
-                  <strong>{needLabel(need)}</strong> — {text}
+                <strong>{needLabel(need)}</strong>
+                <span className={`answer-tag answer-${tone}`}>
+                  <Icon aria-hidden="true" focusable="false" />
+                  {text}
                 </span>
               </p>
               {matches.map((m) => (

@@ -40,8 +40,8 @@ export function ChipPicker({ legend, hint, options, value, onChange, idPrefix, d
 export function Segmented({ name, options, value, onChange }) {
   return (
     <div className="segmented">
-      {options.map(([v, label]) => (
-        <label key={v} className="pick">
+      {options.map(([v, label, tone]) => (
+        <label key={v} className={`pick${tone ? ` pick-${tone}` : ""}`}>
           <input type="radio" name={name} value={v} checked={value === v} onChange={() => onChange(v)} />
           <Check className="pick-check" aria-hidden="true" focusable="false" />
           {label}
