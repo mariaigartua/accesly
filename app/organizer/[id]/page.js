@@ -3,6 +3,7 @@ import { CalendarDays } from "lucide-react";
 import { collections, toObjectId } from "@/lib/mongodb";
 import { formatDate } from "@/lib/labels";
 import RequestQueue from "@/components/RequestQueue";
+import ShareEventCard from "@/components/ShareEventCard";
 import BackLink from "@/components/ui/BackLink";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +15,7 @@ export default async function OrganizerPage({ params }) {
   if (!_id) notFound();
 
   const { events } = await collections();
-  const event = await events.findOne({ _id }, { projection: { name: 1, startsAt: 1 } });
+  const event = await events.findOne({ _id }, { projection: { name: 1, startsAt: 1, slug: 1 } });
   if (!event) notFound();
 
   return (
@@ -32,8 +33,9 @@ export default async function OrganizerPage({ params }) {
           </li>
         </ul>
       </header>
-      <div className="narrow">
+      <div className="narrow stack">
         <RequestQueue eventId={id} eventName={event.name} />
+        <ShareEventCard eventId={id} eventName={event.name} initialSlug={event.slug ?? ""} />
       </div>
     </>
   );

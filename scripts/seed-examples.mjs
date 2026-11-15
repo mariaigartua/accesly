@@ -265,6 +265,8 @@ const EVENTS = [
   },
 ];
 
+// Short links /e/<slug> (same rules as lib/slug.js).
+const slugify = (t) => t.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/g, "");
 const keys = [];
 for (const e of EVENTS) {
   const organizerKey = crypto.randomBytes(16).toString("hex");
@@ -277,10 +279,11 @@ for (const e of EVENTS) {
     spaceId: spaceIds[e.space],
     accessibility: e.accessibility,
     organizerKey,
+    slug: slugify(e.name),
     example: true,
     createdAt: new Date(),
   });
-  keys.push({ name: e.name, id: String(insertedId), organizerKey });
+  keys.push({ name: e.name, id: String(insertedId), organizerKey, slug: slugify(e.name) });
 }
 console.log(`✓ ${EVENTS.length} example events`);
 // Keys are saved locally (gitignored) so you can paste one into the Organizer tab to manage that event.
@@ -288,7 +291,7 @@ const KEYS_FILE = "example-organizer-keys.txt";
 writeFileSync(
   KEYS_FILE,
   "Demo event organizer keys (local only, never commit). Paste a key in Organizer to manage that event.\n\n" +
-    keys.map((k) => `${k.name}\n  event: /events/${k.id}\n  key:   ${k.organizerKey}\n`).join("\n"),
+    keys.map((k) => `${k.name}\n  event: /events/${k.id}  (short link /e/${k.slug})\n  key:   ${k.organizerKey}\n`).join("\n"),
 );
 console.log(`✓ organizer keys saved to ${KEYS_FILE} (gitignored)`);
 

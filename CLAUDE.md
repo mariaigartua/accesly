@@ -141,7 +141,9 @@ The user describes in their own words what they want to do, and Accessly sends t
 - Client-side storage helpers in `lib/local.js` (wrap every `localStorage` call in try/catch): `profile`, `myRequests` (tokens), `myEvents` (eventId + organizerKey).
 - Deploy: Vultr Ubuntu VM with `pm2` (`npm run build && pm2 start "npm start"`). README has steps.
 
-Env (`.env.local`, never commit): `MONGODB_URI`, `MONGODB_DB` (default `accessibility`), `GEMINI_API_KEY`, `GEMINI_MODEL`, optional `GEMINI_FALLBACK_MODEL`.
+Env (`.env.local`, never commit): `MONGODB_URI`, `MONGODB_DB` (default `accessibility`), `GEMINI_API_KEY`, `GEMINI_MODEL`, optional `GEMINI_FALLBACK_MODEL`, optional `NEXT_PUBLIC_SITE_URL` (public address used in share links and QR codes; set it before `npm run build` on the server, otherwise the browser's address is used).
+
+**Share event:** every event gets a unique `slug` (`lib/slug.js`, unique partial index in `ensureSetup()`). `components/ShareEventCard.js` shows the short link, Copy/Share, a QR code (`qrcode` package) with PNG/SVG download, and "Customize link" for organizers on this device. Shown on the publish screen and `/organizer/[id]`.
 
 ### API routes
 | Route | Status | Notes |
@@ -161,6 +163,7 @@ Env (`.env.local`, never commit): `MONGODB_URI`, `MONGODB_DB` (default `accessib
 | `GET /api/chats/[token]` · `POST /api/chats/[token]/messages` | **new** | attendee reads / replies (token) |
 | `POST /api/organizer/chats` | **new** | `{ keys:[{eventId,key}] }` → organizer's chats with unread counts |
 | `POST /api/organizer/chats/[id]/messages` | **new** | organizer reply (`x-organizer-key`) |
+| `PATCH /api/events/[id]/link` | built | `x-organizer-key`, `{ slug? }` → custom short link; no slug = make one from the name. Short links `/e/[slug]` redirect to the event |
 | `POST /api/start` | **new** | Quick start intent → `{ destination, prefill, explanation }` (fixed destination list) |
 | `POST /api/ally` | **new** | `{ question, needs? }` → `{ answer, sources:[{title,url}], usedSpaces:bool, caution? }`; Gemini with `googleSearch` tool + relevant Spaces docs in the prompt |
 

@@ -9,6 +9,7 @@ import Card from "./ui/Card";
 import Notice from "./ui/Notice";
 import Stepper from "./ui/Stepper";
 import { Segmented } from "./ui/Pickers";
+import ShareEventCard from "./ShareEventCard";
 
 const STEPS = ["Event details", "Location", "Accessibility questions"];
 const ANSWERS = [
@@ -192,7 +193,7 @@ export default function CreateEventFlow({ prefill = {} }) {
       const id = String(data._id);
       // Save the key on this device so the Organizer tab can open this event's requests and chats.
       addMyEvent({ eventId: id, organizerKey: data.organizerKey, name: data.name });
-      setCreated({ _id: id, organizerKey: data.organizerKey, name: data.name });
+      setCreated({ _id: id, organizerKey: data.organizerKey, name: data.name, slug: data.slug ?? "" });
       setStep(4);
     } catch (err) {
       setPublishError(err.message);
@@ -217,6 +218,7 @@ export default function CreateEventFlow({ prefill = {} }) {
         <Notice tone="success" title="Your event is published" role="status">
           <p>“{created.name}” is live. Attendees can now see its accessibility info, ask questions and send requests.</p>
         </Notice>
+        <ShareEventCard eventId={created._id} eventName={created.name} initialSlug={created.slug} organizerKey={created.organizerKey} />
         <Card as="section" aria-labelledby="key-heading">
           <h2 id="key-heading" ref={headingRef} tabIndex={-1} className="section-heading">
             <KeyRound aria-hidden="true" focusable="false" />

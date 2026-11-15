@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { collections, toObjectId } from "@/lib/mongodb";
 import { ok, bad, readJson } from "@/lib/http";
 import { searchEvents } from "@/lib/search";
+import { uniqueSlug } from "@/lib/slug";
 
 export const dynamic = "force-dynamic";
 
@@ -49,8 +50,16 @@ export async function POST(req) {
     spaceId,
     accessibility,
     organizerKey: crypto.randomBytes(16).toString("hex"),
+    slug: await uniqueSlug(events, name), // short link /e/<slug> for fliers and QR codes
     createdAt: new Date(),
   };
-  const { insertedId } = await events.insertOne(doc);
+  let insertedId;
+  try {
+    ({ insertedId } = await events.insertOne(doc));
+  } catch (e) {
+    if (e?.code !== 11000) throw e;
+    doc.slug = `${doc.slug.slice(0, 35)}-${crypto.randomBytes(2).toString("hex")}`; // someone took it a moment ago
+    ({ insertedId } = await events.insertOne(doc));
+  }
   return ok({ _id: insertedId, ...doc }, 201);
 }
