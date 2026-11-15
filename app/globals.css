@@ -62,6 +62,44 @@
   }
 }
 
+/* ---------- Hi-fi prototype tokens ----------
+   From the approved Claude Design prototype; see .claude/skills/accessly-design/SKILL.md.
+   Additive: existing components keep their current look until they adopt these.
+   Text rules: --on-cyan / --on-sky on cyan and sky; white only on --primary, --header-bg, --teal-fill. */
+:root {
+  --canvas: #f4f5f7;          /* page background behind white cards */
+  --cyan: #5ce1e6;            /* active tab, selected chips, CTA pill, FAB */
+  --on-cyan: #1a1a1a;         /* 11.1:1 on --cyan */
+  --sky: #a8d1ff;             /* light fills: date tiles, count pills */
+  --on-sky: #1a1a1a;          /* 11.0:1 on --sky */
+  --teal-fill: #00758a;       /* dark fill with white text (5.37:1) */
+  --cyan-tint: #d9f7f9;       /* feature badges, info notes */
+  --header-bg: #014cae;       /* blue rounded-bottom header (white text 7.9:1) */
+  --on-header: #ffffff;
+  --focus-on-fill: #ffffff;   /* focus ring on blue/teal fills (amber is only 1.6:1 on blue) */
+
+  --radius-lg: 20px;          /* cards */
+  --radius-xl: 24px;          /* colored / hero / menu cards */
+  --radius-header: 28px;      /* header bottom corners */
+  --shadow-card: 0 1px 2px rgb(11 18 32 / 0.04), 0 4px 16px -6px rgb(11 18 32 / 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: #121212;
+    --cyan: #5ce1e6;
+    --on-cyan: #121212;
+    --sky: #24476e;
+    --on-sky: #f2f2f2;
+    --teal-fill: #0e5f6e;
+    --cyan-tint: #0d3a3e;
+    --header-bg: #0f2f57;
+    --on-header: #f2f2f2;
+    --focus-on-fill: #ffffff;
+    --shadow-card: none;      /* use --border on cards in dark mode */
+  }
+}
+
 /* ---------- Base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
 

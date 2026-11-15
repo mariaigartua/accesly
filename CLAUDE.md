@@ -28,6 +28,8 @@ Tagline: *Know before you go. Ask for what you need, without explaining why.*
 ## Brand and visual design
 Friendly, calm, rounded, lots of white space. Mobile-first, fully responsive.
 
+**The visual style follows the approved hi-fi prototype. Use the `accessly-design` skill (`.claude/skills/accessly-design/SKILL.md`) for any UI work.** It covers: blue rounded-bottom header with a white pill tab track and cyan current tab, light gray canvas with white rounded cards, cyan uppercase CTA pills, blues-only palette (primary → sky → teal rotation), no black backgrounds. New tokens live in the "Hi-fi prototype tokens" block of `app/globals.css`. Everything below (fonts, contrast, 16px minimum, accessibility) still applies.
+
 **Logos** (in `public/brand/`):
 - `accessly-icon.svg` — white figure (arms up) on a cyan→deep-blue gradient square. Use for the app icon/favicon, the Home logo, and the Ally avatar.
 - `accessly-wordmark.svg` — "Accessly" in brand teal with the figure as the "y". Use in the header.
@@ -52,7 +54,7 @@ Friendly, calm, rounded, lots of white space. Mobile-first, fully responsive.
   - **Bricolage Grotesque** — the brand font (used in the logo). Use for the wordmark, headings, buttons, and tab labels.
   - **Atkinson Hyperlegible** — body text, form fields, chat messages, and long text. It's designed for low-vision readability.
   - Body 18px, line-height 1.6. Headings weight 600–700. Never go below 16px for any readable text.
-- Shapes: cards `border-radius: 16px`, buttons 12px, pills 999px. Soft 1px borders, no heavy shadows.
+- Shapes (prototype): cards `--radius-lg` 20px with the soft `--shadow-card` (no border in light mode, `--border` in dark mode), colored/hero cards `--radius-xl` 24px, header bottom corners 28px, buttons/chips/tabs as pills (999px), inputs 14px.
 - Icons: always paired with a visible text label. Use an icon set (e.g. `lucide-react`) with `aria-hidden="true"`.
 
 ## Navigation and screens
