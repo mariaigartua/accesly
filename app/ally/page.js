@@ -12,19 +12,6 @@ export default async function AllyPage({ searchParams }) {
   return (
     <>
       <BackLink href="/">Home</BackLink>
-      <section className="feature-card ally-intro" aria-labelledby="ally-heading">
-        <div className="ally-intro-row">
-          <img src="/brand/accessly-icon-web.svg" alt="" width={56} height={56} className="ally-intro-avatar" />
-          <div>
-            <h1 id="ally-heading">I&apos;m Ally, your AI guide.</h1>
-            <p className="no-margin">
-              {mode === "help"
-                ? "Ask me how Accessly works and how it protects your privacy."
-                : "I check Accessly's campus data and the web, show my sources, and tell you when I'm not sure."}
-            </p>
-          </div>
-        </div>
-      </section>
       <AllyChat initialQuestion={q} mode={mode} />
     </>
   );

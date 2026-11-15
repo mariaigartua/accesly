@@ -1,20 +1,28 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { BadgeCheck, CircleAlert, CircleHelp, ExternalLink, RefreshCw, Send, TriangleAlert } from "lucide-react";
+import {
+  Accessibility, ArrowUp, BadgeCheck, Bus, CircleAlert, CircleHelp, ExternalLink, Footprints, Headphones,
+  RefreshCw, ShieldCheck, Trash2, TriangleAlert, UserRound,
+} from "lucide-react";
 import { getProfile, useLocal, DEFAULT_PROFILE } from "@/lib/local";
 import { needLabel } from "@/lib/labels";
 import Button from "./ui/Button";
 import Card from "./ui/Card";
+import AllyMascot from "./AllyMascot";
 import { Switch } from "./ui/Pickers";
 
 const SUGGESTIONS = [
-  "Can I take the bus to CVS in a wheelchair?",
-  "Which buildings near me have step-free entrances?",
-  "Is there an elevator in the Student Union?",
-  "Where can I find a quiet place to study on campus?",
+  { text: "Can I take the bus to CVS in a wheelchair?", icon: Bus },
+  { text: "Which buildings near me have step-free entrances?", icon: Footprints },
+  { text: "Is there an elevator in the Student Union?", icon: Accessibility },
+  { text: "Where can I find a quiet place to study on campus?", icon: Headphones },
 ];
-const HELP_SUGGESTIONS = ["Who can see my requests?", "How do I delete my data?", "Do I need an account?"];
+const HELP_SUGGESTIONS = [
+  { text: "Who can see my requests?", icon: ShieldCheck },
+  { text: "How do I delete my data?", icon: Trash2 },
+  { text: "Do I need an account?", icon: UserRound },
+];
 
 function AnswerCard({ item, onRetry }) {
   if (item.error) {
@@ -173,84 +181,159 @@ export default function AllyChat({ initialQuestion = "", mode = "" }) {
   }, [initialQuestion]);
 
   const suggestions = help ? HELP_SUGGESTIONS : SUGGESTIONS;
+  const started = items.length > 0;
+
+  function onKeyDown(e) {
+    // Enter sends, Shift+Enter adds a new line (explained in the hint below the box).
+    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+      e.preventDefault();
+      ask(input);
+    }
+  }
 
   return (
-    <div className="ally-layout">
-      <div className="ally-main">
-        <ol className="ally-log" aria-live="polite" aria-relevant="additions" aria-label="Conversation with Ally">
-          {items.map((it, i) => (
-            <li key={i}>
+    <div className={`ally-chat${started ? " is-started" : ""}`}>
+      {started ? (
+        <header className="ally-topbar">
+          <AllyMascot size={48} />
+          <div>
+            <h1 id="ally-heading">Ally</h1>
+            <p className="no-margin muted">Your AI guide · shows sources, says when unsure</p>
+          </div>
+        </header>
+      ) : (
+        <section className="ally-hero" aria-labelledby="ally-heading">
+          <div className="ally-hero-art">
+            <span className="ally-hello" aria-hidden="true">Hello!</span>
+            <AllyMascot size={168} animated />
+            <span className="ally-hero-shadow" aria-hidden="true" />
+          </div>
+          <h1 id="ally-heading">
+            I&apos;m <span className="ally-name">Ally</span>, your AI guide.
+          </h1>
+          <p className="ally-hero-sub">
+            {help
+              ? "Ask me how Accessly works and how it protects your privacy."
+              : "How can I help you today? I check campus data and official pages, show my sources, and tell you when I'm not sure."}
+          </p>
+        </section>
+      )}
+
+      {!started && (
+        <section className="ally-starters" aria-labelledby="ally-suggestions-heading">
+          <h2 id="ally-suggestions-heading" className="visually-hidden">
+            Try asking
+          </h2>
+          <ul className="ally-tiles">
+            {suggestions.map(({ text, icon: Icon }) => (
+              <li key={text}>
+                <button type="button" className="ally-tile" onClick={() => ask(text)} disabled={loading}>
+                  <span className="ally-tile-icon">
+                    <Icon aria-hidden="true" focusable="false" />
+                  </span>
+                  {text}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <ol className="ally-log" aria-live="polite" aria-relevant="additions" aria-label="Conversation with Ally">
+        {items.map((it, i) => (
+          <li key={i}>
+            <div className="ally-turn ally-turn-user">
+              <p className="ally-who">You</p>
               <p className="msg msg-user ally-question">
                 <span className="visually-hidden">You asked: </span>
                 {it.question}
               </p>
+            </div>
+            <div className="ally-turn">
+              <p className="ally-who">
+                <AllyMascot size={28} />
+                Ally
+              </p>
               {it.result || it.error ? (
                 <AnswerCard item={it} onRetry={() => ask(it.question, { replaceIndex: i })} />
               ) : (
-                <p className="thinking" aria-busy="true">
-                  <span className="spinner" aria-hidden="true" />
+                <p className="ally-typing" aria-busy="true">
+                  <span className="dots" aria-hidden="true">
+                    <span />
+                    <span />
+                    <span />
+                  </span>
                   Thinking…
                 </p>
               )}
-            </li>
-          ))}
-        </ol>
+            </div>
+          </li>
+        ))}
+      </ol>
 
-        <Card as="form" className="ally-composer" onSubmit={(e) => { e.preventDefault(); ask(input); }} noValidate>
-          <div className="field">
-            <label htmlFor="ally-q">
-              {help
-                ? "What would you like to know about Accessly or your privacy?"
-                : "Describe what you want to do or where you want to go, and I'll give you responsible info."}
-            </label>
-            <textarea
-              id="ally-q"
-              ref={inputRef}
-              rows={3}
-              maxLength={1000}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              aria-invalid={!!error}
-              aria-describedby={error ? "ally-error" : "ally-privacy"}
-            />
-          </div>
-          {error && (
-            <p id="ally-error" role="alert" className="error-text">
-              <CircleAlert aria-hidden="true" focusable="false" />
-              {error}
-            </p>
-          )}
-          {!help && profileLoaded && needs.length > 0 && (
-            <Switch
-              id="ally-use-needs"
-              title="Use my profile needs"
-              description={`Shares only: ${needs.map(needLabel).join(", ")}.`}
-              checked={useNeeds}
-              onChange={setUseNeeds}
-            />
-          )}
-          <p id="ally-privacy" className="hint mt-md">
-            Your questions aren&apos;t saved. {help ? "" : "Always double-check anything time-sensitive with the official source."}
-          </p>
-          <Button type="submit" variant="cta" disabled={loading}>
-            {loading ? "Thinking…" : "Ask Ally"}
-          </Button>
-        </Card>
-      </div>
-
-      <aside className="ally-side" aria-labelledby="ally-suggestions-heading">
-        <h2 id="ally-suggestions-heading" className="h3">
-          Try asking
-        </h2>
-        <div className="suggestions">
-          {suggestions.map((s) => (
-            <button key={s} type="button" className="chip-button" onClick={() => ask(s)} disabled={loading}>
-              <Send aria-hidden="true" focusable="false" className="chip-icon" />
-              {s}
-            </button>
-          ))}
+      <form className="ally-composer" onSubmit={(e) => { e.preventDefault(); ask(input); }} noValidate>
+        <label htmlFor="ally-q" className="ally-composer-label">
+          {help
+            ? "What would you like to know about Accessly or your privacy?"
+            : "Describe what you want to do or where you want to go, and I'll give you responsible info."}
+        </label>
+        <div className="ally-input-pill">
+          <textarea
+            id="ally-q"
+            ref={inputRef}
+            rows={1}
+            maxLength={1000}
+            value={input}
+            placeholder={started ? "Ask a follow-up…" : "Ask Ally…"}
+            onChange={(e) => {
+              setInput(e.target.value);
+              e.target.style.height = "auto";
+              e.target.style.height = `${Math.min(e.target.scrollHeight, 200)}px`;
+            }}
+            onKeyDown={onKeyDown}
+            aria-invalid={!!error}
+            aria-describedby={error ? "ally-error ally-privacy" : "ally-privacy"}
+          />
+          <button type="submit" className="ally-send" disabled={loading} aria-label={loading ? "Ally is thinking" : "Send to Ally"}>
+            {loading ? <span className="spinner" aria-hidden="true" /> : <ArrowUp aria-hidden="true" focusable="false" />}
+          </button>
         </div>
-      </aside>
+        {error && (
+          <p id="ally-error" role="alert" className="error-text">
+            <CircleAlert aria-hidden="true" focusable="false" />
+            {error}
+          </p>
+        )}
+        <p id="ally-privacy" className="hint">
+          Enter to send, Shift+Enter for a new line. Your questions aren&apos;t saved.
+          {help ? "" : " Always double-check anything time-sensitive with the official source."}
+        </p>
+        {!help && profileLoaded && needs.length > 0 && (
+          <Switch
+            id="ally-use-needs"
+            title="Use my profile needs"
+            description={`Shares only: ${needs.map(needLabel).join(", ")}.`}
+            checked={useNeeds}
+            onChange={setUseNeeds}
+          />
+        )}
+      </form>
+
+      {started && (
+        <section className="ally-more" aria-labelledby="ally-more-heading">
+          <h2 id="ally-more-heading" className="h3">
+            Try asking
+          </h2>
+          <div className="suggestions">
+            {suggestions.map(({ text, icon: Icon }) => (
+              <button key={text} type="button" className="chip-button" onClick={() => ask(text)} disabled={loading}>
+                <Icon aria-hidden="true" focusable="false" className="chip-icon" />
+                {text}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

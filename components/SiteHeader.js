@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { MessageCircle } from "lucide-react";
 import TabBar from "./TabBar";
 
 function AskAllyLink({ className }) {
@@ -9,8 +10,7 @@ function AskAllyLink({ className }) {
   const onAlly = pathname === "/ally" || pathname.startsWith("/ally/");
   return (
     <Link href="/ally" className={`btn btn-cyan ${className}`} aria-current={onAlly ? "page" : undefined}>
-      {/* Decorative: the visible "Ask Ally" text is the label. */}
-      <img src="/brand/accessly-icon-web.svg" alt="" className="ally-avatar" width={28} height={28} />
+      <MessageCircle aria-hidden="true" size={22} />
       Ask Ally
     </Link>
   );
@@ -23,9 +23,7 @@ export default function SiteHeader() {
   return (
     <header className="site-header">
       <div className="container site-header-inner">
-        {/* aria-label gives the link a name on mobile, where only the decorative icon shows. */}
         <Link href="/" className="logo-link" aria-label="Accessly home">
-          <img src="/brand/accessly-icon-web.svg" alt="" className="logo-icon" width={44} height={44} />
           <img src="/brand/accessly-wordmark-web-white.svg" alt="" className="logo-wordmark" width={141} height={40} />
         </Link>
         <div className="header-actions">

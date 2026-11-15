@@ -21,7 +21,6 @@ export default function HomeSplash() {
       <span className="splash-circle c1" aria-hidden="true" />
       <span className="splash-circle c2" aria-hidden="true" />
       <span className="splash-circle c3" aria-hidden="true" />
-      <span className="splash-circle c4" aria-hidden="true" />
 
       <button type="button" className="splash-pause" aria-pressed={paused} onClick={() => setPaused((p) => !p)}>
         {paused ? <Play aria-hidden="true" focusable="false" width={16} height={16} /> : <Pause aria-hidden="true" focusable="false" width={16} height={16} />}{" "}
