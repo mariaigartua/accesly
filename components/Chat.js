@@ -13,7 +13,7 @@ const SUGGESTIONS = [
   "Is the food labeled for allergens?",
 ];
 
-export default function Chat({ eventId, eventName, onRequest }) {
+export default function Chat({ eventId, eventName, onRequest, onMessage }) {
   const [messages, setMessages] = useState([]); // { role: "user" | "assistant", text, meta? }
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -46,7 +46,7 @@ export default function Chat({ eventId, eventName, onRequest }) {
         {
           role: "assistant",
           text: "I couldn't reach the server. You can still send an anonymous request below.",
-          meta: { suggestRequest: true, question: q },
+          meta: { suggestRequest: true, confirmed: false, question: q },
         },
       ]);
     } finally {
@@ -84,18 +84,24 @@ export default function Chat({ eventId, eventName, onRequest }) {
                 Not confirmed by the organizer
               </p>
             )}
-            {m.role === "assistant" && m.meta?.suggestRequest && (
-              <Button
-                variant="secondary"
-                onClick={() =>
-                  onRequest({
-                    type: REQUEST_TYPE_LABELS[m.meta.requestType] ? m.meta.requestType : "other",
-                    note: m.meta.question,
-                  })
-                }
-              >
-                Send an anonymous request about this
-              </Button>
+            {/* Can't answer → offer both: a request (a need) or a message (anything else). */}
+            {m.role === "assistant" && (m.meta?.suggestRequest || m.meta?.confirmed === false) && (
+              <div className="button-row">
+                <Button
+                  variant="secondary"
+                  onClick={() =>
+                    onRequest({
+                      type: REQUEST_TYPE_LABELS[m.meta.requestType] ? m.meta.requestType : "other",
+                      note: m.meta.question,
+                    })
+                  }
+                >
+                  Request an accommodation
+                </Button>
+                <Button variant="secondary" onClick={() => onMessage?.({ text: m.meta.question })}>
+                  Message the organizer
+                </Button>
+              </div>
             )}
           </li>
         ))}

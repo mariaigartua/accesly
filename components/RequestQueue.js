@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { CircleAlert, CircleCheck, CircleX, KeyRound, RefreshCw, UserRound, EyeOff } from "lucide-react";
-import { needLabel, STATUS_LABELS, formatDate } from "@/lib/labels";
+import { useCallback, useEffect, useState } from "react";
+import { CircleAlert, KeyRound, RefreshCw } from "lucide-react";
+import { STATUS_ORGANIZER_LABELS } from "@/lib/labels";
+import { addMyEvent, keyForEvent } from "@/lib/local";
 import Button from "./ui/Button";
 import Card from "./ui/Card";
-import { NeedIcon } from "./ui/NeedChips";
-import StatusBadge from "./ui/StatusBadge";
+import RequestCard from "./RequestCard";
 
 function ErrorText({ children }) {
   return (
@@ -17,46 +17,44 @@ function ErrorText({ children }) {
   );
 }
 
-export default function RequestQueue({ eventId }) {
+/** Per-event request queue. Uses the key saved on this device, or asks for it. */
+export default function RequestQueue({ eventId, eventName }) {
   const [key, setKey] = useState("");
+  const [remember, setRemember] = useState(true);
   const [unlocked, setUnlocked] = useState(false);
   const [requests, setRequests] = useState([]);
-  const [replies, setReplies] = useState({});
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function load(k = key) {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch(`/api/requests?eventId=${eventId}`, { headers: { "x-organizer-key": k } });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error === "not authorized" ? "That organizer key doesn't match this event." : data.error);
-      setRequests(data);
-      setUnlocked(true);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const load = useCallback(
+    async (k, { save = false } = {}) => {
+      setLoading(true);
+      setError("");
+      try {
+        const res = await fetch(`/api/requests?eventId=${eventId}`, { headers: { "x-organizer-key": k } });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error === "not authorized" ? "That organizer key doesn't match this event." : data.error);
+        setRequests(data);
+        setUnlocked(true);
+        if (save) addMyEvent({ eventId, organizerKey: k, name: eventName });
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [eventId, eventName]
+  );
 
-  async function update(id, status) {
-    setMessage("");
-    const res = await fetch(`/api/requests/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", "x-organizer-key": key },
-      body: JSON.stringify({ status, organizerReply: replies[id] ?? "" }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setError(data.error);
-      return;
+  // If this device already has the key, open the queue straight away.
+  useEffect(() => {
+    const saved = keyForEvent(eventId);
+    if (saved) {
+      setKey(saved);
+      load(saved);
     }
-    setMessage(`Request marked "${STATUS_LABELS[status]}". The attendee will see it on their status page.`);
-    load();
-  }
+  }, [eventId, load]);
 
   if (!unlocked) {
     return (
@@ -65,7 +63,7 @@ export default function RequestQueue({ eventId }) {
         aria-labelledby="unlock-heading"
         onSubmit={(e) => {
           e.preventDefault();
-          load();
+          load(key.trim(), { save: remember });
         }}
       >
         <h2 id="unlock-heading" className="section-heading">
@@ -85,6 +83,10 @@ export default function RequestQueue({ eventId }) {
             aria-invalid={!!error}
           />
         </div>
+        <div className="field field-check">
+          <input id="org-remember" type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+          <label htmlFor="org-remember">Remember this event on this device (adds it to your Organizer tab)</label>
+        </div>
         {error && <ErrorText>{error}</ErrorText>}
         <Button type="submit" disabled={!key || loading}>
           {loading ? "Checking…" : "Open requests"}
@@ -100,58 +102,24 @@ export default function RequestQueue({ eventId }) {
           {message ||
             `${requests.length} request${requests.length === 1 ? "" : "s"}. Requests show needs only, never a diagnosis.`}
         </p>
-        <Button variant="secondary" icon={RefreshCw} onClick={() => load()}>
+        <Button variant="secondary" icon={RefreshCw} onClick={() => load(key)}>
           Refresh
         </Button>
       </div>
       {error && <ErrorText>{error}</ErrorText>}
-
       {requests.length === 0 && <p>No requests yet.</p>}
-
       <ul className="queue">
-        {requests.map((r) => {
-          const id = String(r._id);
-          return (
-            <Card as="li" key={id}>
-              <div className="queue-head">
-                <h2 className="h3 section-heading">
-                  <NeedIcon need={(r.needs ?? [r.type])[0]} />
-                  {(r.needs ?? [r.type]).map(needLabel).join(", ")}
-                </h2>
-                <StatusBadge status={r.status} />
-              </div>
-              {r.note && <p>{r.note}</p>}
-              <ul className="meta">
-                <li>
-                  {r.contact ? (
-                    <UserRound aria-hidden="true" focusable="false" />
-                  ) : (
-                    <EyeOff aria-hidden="true" focusable="false" />
-                  )}
-                  {r.contact ? <>Contact shared: {r.contact}</> : "Anonymous"}
-                </li>
-                <li>Sent {formatDate(r.createdAt)}</li>
-              </ul>
-              <div className="field reply-field">
-                <label htmlFor={`reply-${id}`}>Reply to attendee (optional)</label>
-                <textarea
-                  id={`reply-${id}`}
-                  rows={2}
-                  value={replies[id] ?? r.organizerReply ?? ""}
-                  onChange={(e) => setReplies((s) => ({ ...s, [id]: e.target.value }))}
-                />
-              </div>
-              <div className="button-row">
-                <Button icon={CircleCheck} onClick={() => update(id, "confirmed")}>
-                  Confirm
-                </Button>
-                <Button variant="danger" icon={CircleX} onClick={() => update(id, "cannot-accommodate")}>
-                  Can&apos;t accommodate
-                </Button>
-              </div>
-            </Card>
-          );
-        })}
+        {requests.map((r) => (
+          <RequestCard
+            key={String(r._id)}
+            request={r}
+            organizerKey={key}
+            onSaved={(status) => {
+              setMessage(`Request marked “${STATUS_ORGANIZER_LABELS[status]}”. The attendee will see it on their status page.`);
+              load(key);
+            }}
+          />
+        ))}
       </ul>
     </>
   );

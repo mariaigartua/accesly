@@ -1,9 +1,8 @@
 import { collections, toObjectId } from "@/lib/mongodb";
 import { ok, bad, readJson } from "@/lib/http";
+import { STATUSES } from "@/lib/labels";
 
 export const dynamic = "force-dynamic";
-
-const STATUSES = ["pending", "confirmed", "cannot-accommodate"];
 
 // PATCH /api/requests/:id  { status, organizerReply? }   header: x-organizer-key
 export async function PATCH(req, { params }) {

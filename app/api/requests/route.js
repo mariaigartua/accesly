@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { collections, toObjectId } from "@/lib/mongodb";
 import { REQUEST_TYPES } from "@/lib/prompts";
 import { ok, bad, readJson } from "@/lib/http";
+import { normalizeStatus } from "@/lib/labels";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,7 @@ export async function POST(req) {
     needs,
     note: (body.note ?? "").slice(0, 1000),
     contact: body.contact?.trim() || null, // only if the attendee chooses to share it
-    status: "pending", // pending | confirmed | cannot-accommodate
+    status: "awaiting", // awaiting → in-progress → confirmed | cannot-accommodate
     organizerReply: "",
     accessToken: crypto.randomBytes(16).toString("hex"),
     createdAt: new Date(),
@@ -58,5 +59,5 @@ export async function GET(req) {
     .find({ eventId }, { projection: { accessToken: 0 } })
     .sort({ createdAt: -1 })
     .toArray();
-  return ok(list);
+  return ok(list.map((r) => ({ ...r, status: normalizeStatus(r.status), needs: r.needs ?? (r.type ? [r.type] : []) })));
 }

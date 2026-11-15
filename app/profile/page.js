@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import ProfileForm from "@/components/ProfileForm";
 import MyRequests from "@/components/MyRequests";
+import MyChats from "@/components/MyChats";
 import Card from "@/components/ui/Card";
 
 export const metadata = { title: "Profile" };
@@ -39,6 +40,11 @@ export default function ProfilePage() {
           <section id="my-requests" aria-labelledby="my-requests-heading" className="stack" tabIndex={-1}>
             <h2 id="my-requests-heading">My requests</h2>
             <MyRequests />
+          </section>
+
+          <section id="my-chats" aria-labelledby="my-chats-heading" className="stack" tabIndex={-1}>
+            <h2 id="my-chats-heading">My chats</h2>
+            <MyChats />
           </section>
         </div>
       </div>

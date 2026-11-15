@@ -188,7 +188,7 @@ export default function ProfileForm() {
         <h2 id="clear-heading" className="h3">
           Clear all my data
         </h2>
-        <p>Removes your profile and saved request links from this device. Requests you sent stay with the organizer until they auto-delete.</p>
+        <p>Removes your profile and saved request and chat links from this device. Requests you sent stay with the organizer until they auto-delete.</p>
         {confirmClear ? (
           <div className="button-row" role="group" aria-label="Confirm clearing your data">
             <Button variant="danger" icon={Trash} onClick={clear}>

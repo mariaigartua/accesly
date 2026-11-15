@@ -1,5 +1,5 @@
 import { CircleCheck, CircleX, Hourglass, LoaderCircle } from "lucide-react";
-import { STATUS_LABELS } from "@/lib/labels";
+import { STATUS_LABELS, normalizeStatus } from "@/lib/labels";
 
 // Status is always color + icon + text, never color alone.
 const STATUS = {
@@ -10,15 +10,14 @@ const STATUS = {
 };
 
 export default function StatusBadge({ status, as: Tag = "p" }) {
-  // Older requests still use "pending"; it means the same as "awaiting".
-  const key = status === "pending" ? "awaiting" : status;
+  const key = normalizeStatus(status);
   const { icon: Icon, className } = STATUS[key] ?? STATUS.awaiting;
   return (
     <Tag className={`badge ${className}`}>
       <Icon aria-hidden="true" focusable="false" />
       <span>
         <span className="visually-hidden">Status: </span>
-        {STATUS_LABELS[key] ?? STATUS_LABELS[status] ?? status}
+        {STATUS_LABELS[key] ?? status}
       </span>
     </Tag>
   );

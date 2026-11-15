@@ -19,7 +19,10 @@ export default async function OrganizerPage({ params }) {
 
   return (
     <>
-      <BackLink href={`/events/${id}`}>Attendee view</BackLink>
+      <BackLink href="/organizer">Organizer</BackLink>
+      <p>
+        <a href={`/events/${id}`}>See the attendee view</a>
+      </p>
       <header className="page-header">
         <h1>Requests for {event.name}</h1>
         <ul className="meta">
@@ -30,7 +33,7 @@ export default async function OrganizerPage({ params }) {
         </ul>
       </header>
       <div className="narrow">
-        <RequestQueue eventId={id} />
+        <RequestQueue eventId={id} eventName={event.name} />
       </div>
     </>
   );

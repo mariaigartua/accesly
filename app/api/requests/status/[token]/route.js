@@ -1,5 +1,6 @@
 import { collections } from "@/lib/mongodb";
 import { ok, bad } from "@/lib/http";
+import { normalizeStatus } from "@/lib/labels";
 
 export const dynamic = "force-dynamic";
 
@@ -15,5 +16,5 @@ export async function GET(_req, { params }) {
   );
   if (!request) return bad("request not found", 404);
   const event = await events.findOne({ _id: request.eventId }, { projection: { name: 1, startsAt: 1 } });
-  return ok({ ...request, event });
+  return ok({ ...request, status: normalizeStatus(request.status), event });
 }

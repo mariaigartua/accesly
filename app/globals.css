@@ -654,6 +654,33 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 }
 .faq details p { margin: 0 0 1rem; }
 
+/* ---------- Organizer, chats ---------- */
+.group-heading { font-size: 1.125rem; margin: 1rem 0 0.5rem; }
+.org-panel { display: grid; gap: 0.75rem; }
+.radio-row { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
+.editor { border-top: 1px solid var(--border); padding-top: 1rem; }
+.unread-dot {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  margin-right: 0.5rem;
+  border-radius: 50%;
+  background: var(--primary);
+  vertical-align: middle;
+}
+.preview { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msg-meta { font-size: 1rem; color: var(--muted); }
+/* Mobile: Organizer shortcuts (Chats, Create event) stick to the bottom of the screen. */
+@media (max-width: 1023.98px) {
+  .org-panel {
+    position: sticky;
+    bottom: 0.75rem;
+    z-index: 30;
+    grid-template-columns: 1fr 1fr;
+    box-shadow: 0 4px 14px rgb(0 0 0 / 0.15);
+  }
+}
+
 /* ---------- Motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

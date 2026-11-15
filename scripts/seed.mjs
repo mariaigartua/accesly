@@ -23,6 +23,12 @@ await requests.createIndex({ eventId: 1, createdAt: -1 });
 await requests.createIndex({ accessToken: 1 }, { unique: true });
 // Privacy: MongoDB deletes each request automatically once `deleteAfter` passes.
 await requests.createIndex({ deleteAfter: 1 }, { expireAfterSeconds: 0 });
+const chats = db.collection("chats");
+await chats.createIndex({ deleteAfter: 1 }, { expireAfterSeconds: 0 }); // chats auto-delete too
+await chats.createIndex({ accessToken: 1 }, { unique: true });
+await chats.createIndex({ eventId: 1, updatedAt: -1 });
+await events.createIndex({ organizerKey: 1 });
+await requests.updateMany({ status: "pending" }, { $set: { status: "awaiting" } }); // status rename
 console.log("✓ indexes");
 
 const today = new Date().toISOString().slice(0, 10);
