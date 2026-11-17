@@ -9,3 +9,5 @@ out/
 
 # local organizer keys from npm run seed:examples
 example-organizer-keys.txt
+.vercel
+.env*

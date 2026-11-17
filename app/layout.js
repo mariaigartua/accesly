@@ -1,6 +1,7 @@
 import { Atkinson_Hyperlegible, Bricolage_Grotesque } from "next/font/google";
 import Link from "next/link";
 import SiteHeader, { AskAllyFab } from "@/components/SiteHeader";
+import ServicesPausedDialog from "@/components/ServicesPausedDialog";
 import "./globals.css";
 
 // Brand font for headings, buttons, tabs.
@@ -34,6 +35,7 @@ export default function RootLayout({ children }) {
         <SiteHeader />
         <main id="main" tabIndex={-1}>{children}</main>
         <AskAllyFab />
+        <ServicesPausedDialog />
         <footer className="site-footer">
           <div className="container">
             <p>Accessly · Know before you go. Ask for what you need, without explaining why.</p>
